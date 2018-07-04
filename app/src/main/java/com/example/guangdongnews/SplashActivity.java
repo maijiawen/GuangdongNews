@@ -14,6 +14,10 @@ import android.widget.Toast;
 import com.example.guangdongnews.activity.GuideActivity;
 import com.example.guangdongnews.utils.CacheUtils;
 
+
+/**
+ * 闪屏页，用于过渡到引导页或者主页
+ */
 public class SplashActivity extends Activity {
 
     /**
