@@ -1,6 +1,7 @@
 package com.example.guangdongnews.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -14,6 +15,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.example.guangdongnews.R;
+import com.example.guangdongnews.SplashActivity;
+import com.example.guangdongnews.utils.CacheUtils;
 import com.example.guangdongnews.utils.DensityUtil;
 
 import java.util.ArrayList;
@@ -59,6 +62,21 @@ public class GuideActivity extends Activity {
         btn_start_main = (Button) findViewById(R.id.btn_start_main);
         ll_point_group = (LinearLayout) findViewById(R.id.ll_point_group);
         iv_red_point = (ImageView) findViewById(R.id.iv_red_point);
+
+        btn_start_main.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //1.保存曾经进入过主页面
+                CacheUtils.putBoolean(GuideActivity.this, SplashActivity.START_MAIN,true);
+
+                //2.跳转到主页面
+                Intent intent = new Intent(GuideActivity.this,MainActivity.class);
+                startActivity(intent);
+
+                //3.关闭引导页面
+                finish();
+            }
+        });
     }
 
 

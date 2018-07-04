@@ -3,6 +3,8 @@ package com.example.guangdongnews.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.example.guangdongnews.activity.GuideActivity;
+
 /**
  * 功能描述:缓存软件的一些参数和数据
  * 时　　间: 2018/7/3.12:05
@@ -22,5 +24,15 @@ public class CacheUtils {
         return sp.getBoolean(key,false);
     }
 
-
+    /**
+     * 保存软件参数
+     *
+     * @param context
+     * @param key
+     * @param value
+     */
+    public static void putBoolean(Context context, String key, boolean value) {
+        SharedPreferences sp = context.getSharedPreferences("atguigu", Context.MODE_PRIVATE);
+        sp.edit().putBoolean(key, value).commit();
+    }
 }
