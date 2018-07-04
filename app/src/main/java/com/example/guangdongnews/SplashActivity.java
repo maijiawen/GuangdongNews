@@ -53,7 +53,7 @@ public class SplashActivity extends Activity {
         set.addAnimation(aa);
         set.addAnimation(sa);
         set.addAnimation(ra);
-        set.setDuration(2000);//动画持续时间
+        set.setDuration(500);//动画持续时间
         rl_splahs_root.startAnimation(set);//开始动画
         set.setAnimationListener(new MyAnimationListener());//设置动画监听
     }
