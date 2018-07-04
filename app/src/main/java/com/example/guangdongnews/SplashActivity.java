@@ -12,6 +12,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.example.guangdongnews.activity.GuideActivity;
+import com.example.guangdongnews.activity.MainActivity;
 import com.example.guangdongnews.utils.CacheUtils;
 
 
@@ -83,7 +84,7 @@ public class SplashActivity extends Activity {
             if(isStartMain){
 //                如果进入过主页面，直接进入主页面
 //                2.跳转到主页面
-//                intent = new Intent(SplashActivity.this,MainActivity.class);
+                intent = new Intent(SplashActivity.this,MainActivity.class);
 
             }else{
 //                如果没有进入过主页面，进入引导页面
