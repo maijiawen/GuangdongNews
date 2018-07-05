@@ -16,6 +16,7 @@ import com.example.guangdongnews.page.NewsCenterPager;
 import com.example.guangdongnews.page.SettingPager;
 import com.example.guangdongnews.page.SmartServicePager;
 import com.example.guangdongnews.utils.LogUtil;
+import com.example.guangdongnews.view.NoScrollViewPager;
 
 import org.xutils.view.annotation.ViewInject;
 import org.xutils.x;
@@ -31,7 +32,7 @@ import java.util.ArrayList;
 public class ContentFragment extends BaseFragment {
 
     @ViewInject(R.id.viewpager)   //注解关联控件
-    private ViewPager viewpager;
+    private NoScrollViewPager  viewpager;
     @ViewInject(R.id.rg_main)
     private RadioGroup rg_main;
 
@@ -49,6 +50,7 @@ public class ContentFragment extends BaseFragment {
 
     @Override
     public void initData() {
+
         super.initData();
         LogUtil.e("正文Fragment数据被初始化了");
 
