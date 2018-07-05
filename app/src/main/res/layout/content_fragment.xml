@@ -37,7 +37,7 @@
             android:id="@+id/rb_smartservice"
             android:drawableTop="@drawable/rb_smartservice_drawable_selector"
             android:gravity="center"
-            android:text="商城"
+            android:text="智慧"
             style="@style/bottom_tag_style"
             />
 
@@ -48,7 +48,7 @@
             android:id="@+id/rb_govaffair"
             android:drawableTop="@drawable/rb_govaffair_drawable_selector"
             android:gravity="center"
-            android:text="购物车"
+            android:text="政要"
             style="@style/bottom_tag_style"
             />
 

@@ -59,9 +59,39 @@ public class ContentFragment extends BaseFragment {
         basePagers.add(new GovaffairPager(context));//添加政要中心页面
         basePagers.add(new SettingPager(context));//添加设置中心页面
         viewpager.setAdapter(new ContentFragmentAdapter());
+        rg_main.setOnCheckedChangeListener(new GroupCheckedChangeListener());
         rg_main.check(R.id.rb_home);//设置默认选中主页
 
 
+    }
+
+    class GroupCheckedChangeListener implements RadioGroup.OnCheckedChangeListener{
+
+        /**
+         *
+         * @param radioGroup
+         * @param checkedId 选中的RadioButton ID
+         */
+        @Override
+        public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
+            switch (checkedId){
+                case R.id.rb_home: //主界面
+                    viewpager.setCurrentItem(0,false);
+                    break;
+                case R.id.rb_newscenter: //新闻界面
+                    viewpager.setCurrentItem(1,false);
+                    break;
+                case R.id.rb_smartservice: //智慧服务界面
+                    viewpager.setCurrentItem(2,false);
+                    break;
+                case R.id.rb_govaffair: //政要指南界面
+                    viewpager.setCurrentItem(3,false);
+                    break;
+                case R.id.rb_setting: //设置中心界面
+                    viewpager.setCurrentItem(4,false);
+                    break;
+            }
+        }
     }
 
     class ContentFragmentAdapter extends PagerAdapter {
@@ -88,7 +118,7 @@ public class ContentFragment extends BaseFragment {
 
         @Override
         public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-            container.removeView((View) object);
+            container.removeView((View) object);//从容器中移除
         }
     }
 }
