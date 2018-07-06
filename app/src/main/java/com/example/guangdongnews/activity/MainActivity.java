@@ -59,7 +59,7 @@ public class MainActivity extends SlidingFragmentActivity {
         FragmentManager fm = getSupportFragmentManager();
         //2.开启事务
         FragmentTransaction ft= fm.beginTransaction();
-        //3.替换
+        //3.替换：先将之前已经存在的fragment先移除，再添加现有的进去
         ft.replace(R.id.fl_main_content,new ContentFragment(), MAIN_CONTENT_TAG);//主页
         ft.replace(R.id.fl_leftmenu, new LeftmenuFragment(), LEFTMENU_TAG);//左侧菜单
         //4.提交
