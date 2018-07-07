@@ -3,15 +3,22 @@ package com.example.guangdongnews.page;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.TextView;
 
+import com.example.guangdongnews.activity.MainActivity;
 import com.example.guangdongnews.base.BasePager;
+import com.example.guangdongnews.domain.NewsCenterPagerBean;
+import com.example.guangdongnews.fragment.LeftmenuFragment;
 import com.example.guangdongnews.utils.Constants;
 import com.example.guangdongnews.utils.LogUtil;
+import com.google.gson.Gson;
 
 import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
 import org.xutils.x;
+
+import java.util.List;
 
 /**
  * 功能描述:  新闻中心页面
@@ -20,18 +27,23 @@ import org.xutils.x;
  * 版本信息: V1.0.0
  **/
 public class NewsCenterPager extends BasePager {
+
+    private List<NewsCenterPagerBean.DataBean> data;
+
+
     public NewsCenterPager(Context context) {
         super(context);
     }
-    TextView textView;
+
     @Override
     public void initData() {
         super.initData();
         LogUtil.e("新闻中心数据被初始化了..");
+        ib_menu.setVisibility(View.VISIBLE);
         //1.设置标题
         tv_title.setText("新闻中心");
         //2.联网请求，得到数据，创建视图
-        textView = new TextView(context);
+        TextView textView = new TextView(context);
         textView.setGravity(Gravity.CENTER);
         textView.setTextColor(Color.RED);
         textView.setTextSize(25);
@@ -50,9 +62,8 @@ public class NewsCenterPager extends BasePager {
         x.http().get(params, new Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String result) {
-
-                LogUtil.e("使用xUtils3联网请求成功==" + result);
-                textView.setText(result);
+                processData(result);
+                LogUtil.e("使用xUtils3联网请求成功==");
             }
 
             @Override
@@ -70,5 +81,30 @@ public class NewsCenterPager extends BasePager {
                 LogUtil.e("使用xUtils3-onFinished");
             }
         });
+    }
+
+    /**
+     * 处理json数据
+     * @param json
+     */
+    private void processData(String json){
+        NewsCenterPagerBean bean=parseJson(json);
+        String title=bean.getData().get(0).getChildren().get(0).getTitle();
+        data=bean.getData();
+        MainActivity mainActivity= (MainActivity) context;
+        LeftmenuFragment leftmenuFragment=mainActivity.getLeftmenuFragment();
+        leftmenuFragment.setData(data);
+        LogUtil.e("json title = "+title);
+    }
+
+    /**
+     * 解析json数据,并返回对象
+     * @param json
+     * @return
+     */
+    private NewsCenterPagerBean parseJson(String json) {
+        Gson gson=new Gson();
+        NewsCenterPagerBean bean= gson.fromJson(json,NewsCenterPagerBean.class);
+        return bean;
     }
 }

@@ -27,4 +27,5 @@ dependencies {
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'org.xutils:xutils:3.5.0'
     implementation project(':SlidingMenu_library')
+    implementation 'com.google.code.gson:gson:2.8.5'
 }
