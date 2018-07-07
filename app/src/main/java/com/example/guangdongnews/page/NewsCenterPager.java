@@ -12,10 +12,10 @@ import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.base.BasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
 import com.example.guangdongnews.fragment.LeftmenuFragment;
-import com.example.guangdongnews.menudetailpage.InteracMenuDetaiBasePager;
-import com.example.guangdongnews.menudetailpage.NewsMenuDetaiBasePager;
-import com.example.guangdongnews.menudetailpage.PhotosMenuDetaiBasePager;
-import com.example.guangdongnews.menudetailpage.TopicMenuDetaiBasePager;
+import com.example.guangdongnews.menudetailpage.InteracMenuDetailBasePager;
+import com.example.guangdongnews.menudetailpage.NewsMenuDetailBasePager;
+import com.example.guangdongnews.menudetailpage.PhotosMenuDetailBasePager;
+import com.example.guangdongnews.menudetailpage.TopicMenuDetailBasePager;
 import com.example.guangdongnews.utils.CacheUtils;
 import com.example.guangdongnews.utils.Constants;
 import com.example.guangdongnews.utils.LogUtil;
@@ -118,10 +118,10 @@ public class NewsCenterPager extends BasePager {
 
         //添加详情页面
         detaiBasePagers = new ArrayList<>();
-        detaiBasePagers.add(new NewsMenuDetaiBasePager(context));//新闻详情页面
-        detaiBasePagers.add(new TopicMenuDetaiBasePager(context));//专题详情页面
-        detaiBasePagers.add(new PhotosMenuDetaiBasePager(context));//图组详情页面
-        detaiBasePagers.add(new InteracMenuDetaiBasePager(context));//互动详情页面
+        detaiBasePagers.add(new NewsMenuDetailBasePager(context,data.get(0)));//新闻详情页面
+        detaiBasePagers.add(new TopicMenuDetailBasePager(context));//专题详情页面
+        detaiBasePagers.add(new PhotosMenuDetailBasePager(context));//图组详情页面
+        detaiBasePagers.add(new InteracMenuDetailBasePager(context));//互动详情页面
 
         leftmenuFragment.setData(data);//传递数据给左侧菜单
 

@@ -10,16 +10,16 @@ import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.utils.LogUtil;
 
 /**
- * 功能描述:   专题页面
+ * 功能描述:   互动页面
  * 时　　间: 2018/7/7.13:53
  * 作    者: maijiawen
  * 版本信息: V1.0.0
  **/
-public class TopicMenuDetaiBasePager extends MenuDetaiBasePager {
+public class InteracMenuDetailBasePager extends MenuDetaiBasePager {
 
     private TextView textView;
 
-    public TopicMenuDetaiBasePager(Context context) {
+    public InteracMenuDetailBasePager(Context context) {
         super(context);
     }
 
@@ -33,11 +33,10 @@ public class TopicMenuDetaiBasePager extends MenuDetaiBasePager {
         return textView;
     }
 
-
     @Override
     public void initData() {
         super.initData();
-        textView.setText("专题页面");
-        LogUtil.e("新闻页面初始化了");
+        textView.setText("互动页面");
+        LogUtil.e("互动页面初始化了");
     }
 }

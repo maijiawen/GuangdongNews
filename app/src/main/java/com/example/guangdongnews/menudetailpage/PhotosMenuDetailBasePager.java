@@ -15,11 +15,11 @@ import com.example.guangdongnews.utils.LogUtil;
  * 作    者: maijiawen
  * 版本信息: V1.0.0
  **/
-public class PhotosMenuDetaiBasePager extends MenuDetaiBasePager {
+public class PhotosMenuDetailBasePager extends MenuDetaiBasePager {
 
     private TextView textView;
 
-    public PhotosMenuDetaiBasePager(Context context) {
+    public PhotosMenuDetailBasePager(Context context) {
         super(context);
     }
 
