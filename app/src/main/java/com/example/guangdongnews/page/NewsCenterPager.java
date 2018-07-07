@@ -2,6 +2,7 @@ package com.example.guangdongnews.page;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
@@ -15,6 +16,7 @@ import com.example.guangdongnews.menudetailpage.InteracMenuDetaiBasePager;
 import com.example.guangdongnews.menudetailpage.NewsMenuDetaiBasePager;
 import com.example.guangdongnews.menudetailpage.PhotosMenuDetaiBasePager;
 import com.example.guangdongnews.menudetailpage.TopicMenuDetaiBasePager;
+import com.example.guangdongnews.utils.CacheUtils;
 import com.example.guangdongnews.utils.Constants;
 import com.example.guangdongnews.utils.LogUtil;
 import com.google.gson.Gson;
@@ -62,6 +64,11 @@ public class NewsCenterPager extends BasePager {
         fl_content.addView(textView);
         //4.绑定数据
 //        textView.setText("新闻中心内容");
+        String saveJson=CacheUtils.getString(context,Constants.NEWSCENTER_PAGER_URL);
+        if(!TextUtils.isEmpty(saveJson)){
+            //试图获取缓存
+            processData(saveJson);
+        }
         getDataFromNet();//请求网络
     }
 
@@ -73,6 +80,7 @@ public class NewsCenterPager extends BasePager {
         x.http().get(params, new Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String result) {
+                CacheUtils.putString(context,Constants.NEWSCENTER_PAGER_URL,result);//缓存文本
                 processData(result);
                 LogUtil.e("使用xUtils3联网请求成功==");
             }
