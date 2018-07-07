@@ -13,6 +13,7 @@ import com.example.guangdongnews.activity.MainActivity;
 import com.example.guangdongnews.base.BaseFragment;
 import com.example.guangdongnews.base.BasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
+import com.example.guangdongnews.page.NewsCenterPager;
 import com.example.guangdongnews.utils.DensityUtil;
 import com.example.guangdongnews.utils.LogUtil;
 
@@ -53,6 +54,8 @@ public class LeftmenuFragment extends BaseFragment {
                 //2.把左侧菜单关闭
                 MainActivity mainActivity = (MainActivity) context;
                 mainActivity.getSlidingMenu().toggle();//关<->开
+                LogUtil.e("prePosition "+prePosition);
+                swichPager(prePosition);
             }
         });
         return listView;
@@ -70,6 +73,7 @@ public class LeftmenuFragment extends BaseFragment {
 
         leftAdapter=new LeftAdapter();
         listView.setAdapter(leftAdapter);
+        swichPager(prePosition);
     }
 
 
@@ -97,5 +101,16 @@ public class LeftmenuFragment extends BaseFragment {
             textView.setEnabled(position==prePosition);//通过设置使能来设置按钮状态
             return textView;
         }
+    }
+
+    /**
+     * 根据位置切换不同详情页面
+     * @param position
+     */
+    private void swichPager(int position) {
+        MainActivity mainActivity = (MainActivity) context;
+        ContentFragment contentFragment = mainActivity.getContentFragment();
+        NewsCenterPager newsCenterPager = contentFragment.getNewsCenterPager();
+        newsCenterPager.swichPager(position);
     }
 }

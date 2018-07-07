@@ -161,4 +161,12 @@ public class ContentFragment extends BaseFragment {
             container.removeView((View) object);//从容器中移除
         }
     }
+
+    /**
+     * 得到新闻中心页面
+     * @return
+     */
+    public NewsCenterPager getNewsCenterPager() {
+        return (NewsCenterPager) basePagers.get(1);
+    }
 }
