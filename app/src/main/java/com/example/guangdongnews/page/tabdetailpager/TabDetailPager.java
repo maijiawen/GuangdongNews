@@ -27,6 +27,7 @@ import com.google.gson.Gson;
 
 import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
+import org.xutils.image.ImageOptions;
 import org.xutils.x;
 
 import java.util.List;
@@ -50,6 +51,7 @@ public class TabDetailPager extends MenuDetaiBasePager{
     private List<TabDetailPagerBean.DataEntity.NewsData> newsData;
 
     private String url;
+    private ImageOptions imageOptions;
 
     private ViewPager viewPager;
     private TextView tv_title;
@@ -63,15 +65,30 @@ public class TabDetailPager extends MenuDetaiBasePager{
     public TabDetailPager(Context context, NewsCenterPagerBean.DataBean.ChildrenData childrenData) {
         super(context);
         this.childrenData=childrenData;
+        imageOptions = new ImageOptions.Builder()
+                .setSize(DensityUtil.dip2px(context,100), DensityUtil.dip2px(context,100))
+                .setRadius(DensityUtil.dip2px(context,5))
+                // 如果ImageView的大小不是定义为wrap_content, 不要crop.
+                .setCrop(true) // 很多时候设置了合适的scaleType也不需要它.
+                // 加载中或错误图片的ScaleType
+                //.setPlaceholderScaleType(ImageView.ScaleType.MATRIX)
+                .setImageScaleType(ImageView.ScaleType.CENTER_CROP)
+                .setLoadingDrawableId(R.drawable.news_pic_default)//图片加载中时的默认图片
+                .setFailureDrawableId(R.drawable.news_pic_default)
+                .build();
     }
 
     @Override
     public View initView() {
         View view=View.inflate(context, R.layout.tabdetail_pager,null);
-        viewPager=view.findViewById(R.id.viewpager);
-        tv_title=view.findViewById(R.id.tv_title);
-        ll_point_group=view.findViewById(R.id.ll_point_group);
         listView=view.findViewById(R.id.listview);
+
+        View topNewsView=View.inflate(context, R.layout.topnews,null);
+        viewPager=topNewsView.findViewById(R.id.viewpager);
+        tv_title=topNewsView.findViewById(R.id.tv_title);
+        ll_point_group=topNewsView.findViewById(R.id.ll_point_group);
+
+        listView.addHeaderView(topNewsView);
         return view;
     }
 
@@ -140,6 +157,10 @@ public class TabDetailPager extends MenuDetaiBasePager{
 //        LogUtil.e("title "+bean.getData().getNews().get(0).getTitle());
     }
 
+
+    /**
+     * listview 的适配器
+     */
     class TopDetailPageListAdapter extends BaseAdapter{
 
         @Override
@@ -174,7 +195,7 @@ public class TabDetailPager extends MenuDetaiBasePager{
             TabDetailPagerBean.DataEntity.NewsData news=newsData.get(position);
             String imgUrl=Constants.BASE_URL+news.getListimage();
             //请求网络图片
-            x.image().bind(viewHolder.iv_icon,imgUrl);
+            x.image().bind(viewHolder.iv_icon,imgUrl,imageOptions);
             //标题
             viewHolder.tv_title.setText(news.getTitle());
             //时间
@@ -232,6 +253,9 @@ public class TabDetailPager extends MenuDetaiBasePager{
         }
     }
 
+    /**
+     * 顶部viewpager的适配器
+     */
     class TabDetailPagerTopNewsAdapter extends PagerAdapter{
 
         @Override
