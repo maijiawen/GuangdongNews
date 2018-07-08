@@ -133,7 +133,7 @@ public class NewsMenuDetailBasePager extends MenuDetaiBasePager {
         public Object instantiateItem(@NonNull ViewGroup container, int position) {
             TabDetailPager tabDetailPager=tabDetailPagers.get(position);
             View view=tabDetailPager.rootView;
-            tabDetailPager.initData();
+            tabDetailPager.initData();//切换页面，初始化请求不同的页面数据
             container.addView(view);
             return view;
         }
