@@ -7,12 +7,15 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
 import com.example.guangdongnews.R;
+import com.example.guangdongnews.activity.MainActivity;
 import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
 import com.example.guangdongnews.page.tabdetailpager.TabDetailPager;
 import com.example.guangdongnews.utils.LogUtil;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.viewpagerindicator.TabPageIndicator;
 
 import org.xutils.view.annotation.ViewInject;
@@ -35,6 +38,9 @@ public class NewsMenuDetailBasePager extends MenuDetaiBasePager {
     @ViewInject(R.id.tabPageIndicator)
     private TabPageIndicator tabPageIndicator;
 
+    @ViewInject(R.id.ib_tab_next)
+    private ImageButton imageButton;
+
     /**
      * 页签页面数据集合
      */
@@ -51,6 +57,12 @@ public class NewsMenuDetailBasePager extends MenuDetaiBasePager {
     public View initView() {
         View view=View.inflate(context, R.layout.newsmenu_detail_pager,null);
         x.view().inject(NewsMenuDetailBasePager.this,view);
+        imageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                viewPager.setCurrentItem(viewPager.getCurrentItem()+1);
+            }
+        });
         return view;
     }
 
@@ -62,8 +74,45 @@ public class NewsMenuDetailBasePager extends MenuDetaiBasePager {
             tabDetailPagers.add(new TabDetailPager(context,children.get(i)));
         }
         viewPager.setAdapter(new MyNewsMenuDetailBasePagerAdapter());
+        tabPageIndicator.setOnPageChangeListener(new MyOnPageChangeLisener());
         tabPageIndicator.setViewPager(viewPager);
         LogUtil.e("新闻页面初始化了");
+    }
+
+    class MyOnPageChangeLisener implements ViewPager.OnPageChangeListener{
+
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            if (position==0){
+                //可以左侧滑出菜单
+                isEnableSlidingMenu(SlidingMenu.TOUCHMODE_FULLSCREEN);
+            }else{
+                //不可以
+                isEnableSlidingMenu(SlidingMenu.TOUCHMODE_NONE);
+            }
+
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+
+        }
+    }
+
+
+    /***
+     * 根据传入参数设置是否可以滑动左侧菜单
+     * @param para  SlidingMenu.TOUCHMODE_NONE 不可滑
+     *              SlidingMenu.TOUCHMODE_FULLSCREEN 可滑
+     */
+    private void isEnableSlidingMenu(int para) {
+        MainActivity mainActivity= (MainActivity) context;
+        mainActivity.getSlidingMenu().setTouchModeAbove(para);
     }
 
     class MyNewsMenuDetailBasePagerAdapter extends PagerAdapter{
