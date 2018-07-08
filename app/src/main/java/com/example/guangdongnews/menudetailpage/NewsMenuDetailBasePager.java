@@ -2,6 +2,7 @@ package com.example.guangdongnews.menudetailpage;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.View;
@@ -12,6 +13,7 @@ import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
 import com.example.guangdongnews.page.tabdetailpager.TabDetailPager;
 import com.example.guangdongnews.utils.LogUtil;
+import com.viewpagerindicator.TabPageIndicator;
 
 import org.xutils.view.annotation.ViewInject;
 import org.xutils.x;
@@ -29,6 +31,9 @@ public class NewsMenuDetailBasePager extends MenuDetaiBasePager {
 
     @ViewInject(R.id.viewpager)
     private ViewPager viewPager;
+
+    @ViewInject(R.id.tabPageIndicator)
+    private TabPageIndicator tabPageIndicator;
 
     /**
      * 页签页面数据集合
@@ -57,10 +62,17 @@ public class NewsMenuDetailBasePager extends MenuDetaiBasePager {
             tabDetailPagers.add(new TabDetailPager(context,children.get(i)));
         }
         viewPager.setAdapter(new MyNewsMenuDetailBasePagerAdapter());
+        tabPageIndicator.setViewPager(viewPager);
         LogUtil.e("新闻页面初始化了");
     }
 
     class MyNewsMenuDetailBasePagerAdapter extends PagerAdapter{
+
+        @Nullable
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return children.get(position).getTitle();
+        }
 
         @Override
         public int getCount() {
