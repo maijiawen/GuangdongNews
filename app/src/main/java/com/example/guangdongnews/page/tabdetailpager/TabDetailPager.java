@@ -9,13 +9,16 @@ import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.guangdongnews.R;
 import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
@@ -40,20 +43,24 @@ import java.util.List;
  * 作    者: maijiawen
  * 版本信息: V1.0.0
  **/
-public class TabDetailPager extends MenuDetaiBasePager{
+public class TabDetailPager extends MenuDetaiBasePager {
     private final NewsCenterPagerBean.DataBean.ChildrenData childrenData;
     /**
      * 顶部轮播图部分的数据
      */
-    private  List<TabDetailPagerBean.DataEntity.TopnewsData> topNews;
+    private List<TabDetailPagerBean.DataEntity.TopnewsData> topNews;
 
     /***
      * 新闻列表数据的结合
      */
     private List<TabDetailPagerBean.DataEntity.NewsData> newsData;
+    /***
+     * 下一页的新闻列表数据的结合
+     */
+    private List<TabDetailPagerBean.DataEntity.NewsData> moreNewsData;
 
     private String url;
-    private ImageOptions imageOptions;
+    private RequestOptions options;//glide加载图片时默认显示的图片
 
     private HorizontalScrollViewPager viewPager;
     private TextView tv_title;
@@ -63,59 +70,52 @@ public class TabDetailPager extends MenuDetaiBasePager{
     private TopDetailPageListAdapter listAdapter;
 
     private int prePosition;
+    private String moreUrl;//下一页的网址
 
     public TabDetailPager(Context context, NewsCenterPagerBean.DataBean.ChildrenData childrenData) {
         super(context);
-        this.childrenData=childrenData;
-        imageOptions = new ImageOptions.Builder()
-                .setSize(DensityUtil.dip2px(context,100), DensityUtil.dip2px(context,100))
-                .setRadius(DensityUtil.dip2px(context,5))
-                // 如果ImageView的大小不是定义为wrap_content, 不要crop.
-                .setCrop(true) // 很多时候设置了合适的scaleType也不需要它.
-                // 加载中或错误图片的ScaleType
-                //.setPlaceholderScaleType(ImageView.ScaleType.MATRIX)
-                .setImageScaleType(ImageView.ScaleType.CENTER_CROP)
-                .setLoadingDrawableId(R.drawable.news_pic_default)//图片加载中时的默认图片
-                .setFailureDrawableId(R.drawable.news_pic_default)
-                .build();
+        this.childrenData = childrenData;
+        //Glide加载图片或者加载失败时默认显示的图片
+         options = new RequestOptions()
+                .placeholder(R.drawable.news_pic_default).error(R.drawable.news_pic_default);
     }
 
     @Override
     public View initView() {
-        View view=View.inflate(context, R.layout.tabdetail_pager,null);
-        listView=view.findViewById(R.id.listview);
+        View view = View.inflate(context, R.layout.tabdetail_pager, null);
+        listView = view.findViewById(R.id.listview);
 
-        View topNewsView=View.inflate(context, R.layout.topnews,null);
-        viewPager=topNewsView.findViewById(R.id.viewpager);
-        tv_title=topNewsView.findViewById(R.id.tv_title);
-        ll_point_group=topNewsView.findViewById(R.id.ll_point_group);
+        View topNewsView = View.inflate(context, R.layout.topnews, null);
+        viewPager = topNewsView.findViewById(R.id.viewpager);
+        tv_title = topNewsView.findViewById(R.id.tv_title);
+        ll_point_group = topNewsView.findViewById(R.id.ll_point_group);
 
-        listView.addHeaderView(topNewsView);
+        listView.addHeaderView(topNewsView);//将viewpager融入listview的头部
         return view;
     }
 
     @Override
     public void initData() {
         super.initData();
-        url= Constants.BASE_URL+childrenData.getUrl();
-        String saveJson= CacheUtils.getString(context,url);//获取之前的json网址缓存
-        if (!TextUtils.isEmpty(saveJson)){
+        url = Constants.BASE_URL + childrenData.getUrl();
+        String saveJson = CacheUtils.getString(context, url);//获取之前的json网址缓存
+        if (!TextUtils.isEmpty(saveJson)) {
             //如果之前有缓存的话，发起网络数据请求
             processData(saveJson);
         }
         getDateFromNet();
-        LogUtil.e("childrenData title "+childrenData.getTitle()+ " 网址 "+url);
+        LogUtil.e("childrenData title " + childrenData.getTitle() + " 网址 " + url);
     }
 
     /**
      * 获取网络数据
      */
     public void getDateFromNet() {
-        RequestParams params=new RequestParams(url);
+        RequestParams params = new RequestParams(url);
         x.http().get(params, new Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String result) {
-                CacheUtils.putString(context,url,result);//将网址写入缓存中
+                CacheUtils.putString(context, url, result);//将网址写入缓存中
                 processData(result);
 //                LogUtil.e("onSuccess data= "+result);
             }
@@ -139,11 +139,12 @@ public class TabDetailPager extends MenuDetaiBasePager{
 
     /**
      * 处理网络返回的json数据
+     *
      * @param json
      */
     private void processData(String json) {
-        TabDetailPagerBean bean=parsedJson(json);
-        topNews=bean.getData().getTopnews();
+        TabDetailPagerBean bean = parsedJson(json);
+        topNews = bean.getData().getTopnews();
         viewPager.setAdapter(new TabDetailPagerTopNewsAdapter());
 
         addPoint();
@@ -151,19 +152,95 @@ public class TabDetailPager extends MenuDetaiBasePager{
         tv_title.setText(topNews.get(prePosition).getTitle());//设置图中标题
 
         //获取listview的数据
-        newsData=bean.getData().getNews();
+        newsData = bean.getData().getNews();
 
         //设置listview的适配器
-        listAdapter=new TopDetailPageListAdapter();
+        listAdapter = new TopDetailPageListAdapter();
         listView.setAdapter(listAdapter);
+        listView.setOnScrollListener(new OnMyListviewScrollListener());
+        moreUrl="";//清空内容
+        if(!TextUtils.isEmpty(bean.getData().getMore())){
+            //下一页内容不为空的话，获取下一页的网址
+            moreUrl=Constants.BASE_URL+bean.getData().getMore();
+        }
 //        LogUtil.e("title "+bean.getData().getNews().get(0).getTitle());
     }
 
+    class OnMyListviewScrollListener implements AbsListView.OnScrollListener {
+
+        @Override
+        public void onScrollStateChanged(AbsListView absListView, int scrollState) {
+            if(scrollState== AbsListView.OnScrollListener.SCROLL_STATE_IDLE||
+                    scrollState== AbsListView.OnScrollListener.SCROLL_STATE_FLING){
+                //若可视的最后一个是列表的最后一个，则加载更多
+                if(listView.getLastVisiblePosition()>=listAdapter.getCount()-1){
+                    getMoreDataFromNet();
+                    Toast.makeText(context,"加载更多",Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+
+        @Override
+        public void onScroll(AbsListView absListView,
+                             int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+        }
+    }
 
     /**
-     * listview 的适配器
+     * 加载下一页网络数据
      */
-    class TopDetailPageListAdapter extends BaseAdapter{
+    private void getMoreDataFromNet() {
+        RequestParams params = new RequestParams(moreUrl);
+        x.http().get(params, new Callback.CommonCallback<String>() {
+            @Override
+            public void onSuccess(String result) {
+                CacheUtils.putString(context, moreUrl, result);//将网址写入缓存中
+                processMoreData(result);
+                LogUtil.e("getMoreDataFromNet onSuccess data= "+result);
+            }
+
+            @Override
+            public void onError(Throwable ex, boolean isOnCallback) {
+
+            }
+
+            @Override
+            public void onCancelled(CancelledException cex) {
+
+            }
+
+            @Override
+            public void onFinished() {
+
+            }
+        });
+    }
+
+    /**
+     * 处理下一页的网络请求返回的数据
+     * @param json
+     */
+    private void processMoreData(String json) {
+        TabDetailPagerBean bean = parsedJson(json);
+        //获取listview的数据
+        moreNewsData = bean.getData().getNews();
+        newsData.addAll(moreNewsData);
+        listAdapter.notifyDataSetChanged();
+        moreUrl="";//清空内容
+        if(!TextUtils.isEmpty(bean.getData().getMore())){
+            //下一页内容不为空的话，获取下一页的网址
+            moreUrl=Constants.BASE_URL+bean.getData().getMore();
+        }else{
+            Toast.makeText(context,"没有更多的了...",Toast.LENGTH_SHORT).show();
+        }
+        LogUtil.e("getMoreDataFromNet processMoreData success!! ");
+    }
+
+    /**
+     * listview 的数据适配器
+     */
+    class TopDetailPageListAdapter extends BaseAdapter {
 
         @Override
         public int getCount() {
@@ -183,22 +260,22 @@ public class TabDetailPager extends MenuDetaiBasePager{
         @Override
         public View getView(int position, View view, ViewGroup viewGroup) {
             ViewHolder viewHolder;
-            if(view==null){
-                view=View.inflate(context,R.layout.item_tabdetail_pager,null);
-                viewHolder=new ViewHolder();
-                viewHolder.iv_icon=view.findViewById(R.id.iv_icon);
-                viewHolder.tv_title=view.findViewById(R.id.tv_title);
-                viewHolder.tv_time=view.findViewById(R.id.tv_time);
+            if (view == null) {
+                view = View.inflate(context, R.layout.item_tabdetail_pager, null);
+                viewHolder = new ViewHolder();
+                viewHolder.iv_icon = view.findViewById(R.id.iv_icon);
+                viewHolder.tv_title = view.findViewById(R.id.tv_title);
+                viewHolder.tv_time = view.findViewById(R.id.tv_time);
                 view.setTag(viewHolder);
-            }else{
-                viewHolder= (ViewHolder) view.getTag();
+            } else {
+                viewHolder = (ViewHolder) view.getTag();
             }
 
-            TabDetailPagerBean.DataEntity.NewsData news=newsData.get(position);
-            String imgUrl=Constants.BASE_URL+news.getListimage();
+            TabDetailPagerBean.DataEntity.NewsData news = newsData.get(position);
+            String imgUrl = Constants.BASE_URL + news.getListimage();
             //请求网络图片
 //            x.image().bind(viewHolder.iv_icon,imgUrl,imageOptions);
-            Glide.with(context).load(imgUrl).into(viewHolder.iv_icon);
+            Glide.with(context).load(imgUrl).apply(options).into(viewHolder.iv_icon);
             //标题
             viewHolder.tv_title.setText(news.getTitle());
             //时间
@@ -208,33 +285,38 @@ public class TabDetailPager extends MenuDetaiBasePager{
 
 
     }
-    static class ViewHolder{
+
+    static class ViewHolder {
         ImageView iv_icon;
         TextView tv_title;
         TextView tv_time;
     }
+
     /**
      * 添加红点
      */
     private void addPoint() {
         ll_point_group.removeAllViews();//移除之前的所有视图
         for (int i = 0; i < topNews.size(); i++) {
-            ImageView imageView=new ImageView(context);
+            ImageView imageView = new ImageView(context);
             imageView.setBackgroundResource(R.drawable.point_selector);
-            LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(DensityUtil.dip2px(context,8),DensityUtil.dip2px(context,8));
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(DensityUtil.dip2px(context, 8), DensityUtil.dip2px(context, 8));
 
-            if(i==0){
+            if (i == 0) {
                 imageView.setEnabled(true);//图片为红点
 
-            }else{
+            } else {
                 imageView.setEnabled(false);//图片为灰点
-                params.leftMargin=DensityUtil.dip2px(context,8);
+                params.leftMargin = DensityUtil.dip2px(context, 8);
             }
             imageView.setLayoutParams(params);
             ll_point_group.addView(imageView);
         }
     }
 
+    /**
+     * 顶部轮播图viewpager 的页面切换监听
+     */
     class MyOnPageChangeListener implements ViewPager.OnPageChangeListener {
 
         @Override
@@ -247,7 +329,7 @@ public class TabDetailPager extends MenuDetaiBasePager{
             tv_title.setText(topNews.get(position).getTitle());//设置图中标题
             ll_point_group.getChildAt(prePosition).setEnabled(false);//设置上一个点为灰色
             ll_point_group.getChildAt(position).setEnabled(true);//设置当前的点为红色
-            prePosition=position;
+            prePosition = position;
         }
 
         @Override
@@ -259,7 +341,7 @@ public class TabDetailPager extends MenuDetaiBasePager{
     /**
      * 顶部viewpager的适配器
      */
-    class TabDetailPagerTopNewsAdapter extends PagerAdapter{
+    class TabDetailPagerTopNewsAdapter extends PagerAdapter {
 
         @Override
         public int getCount() {
@@ -268,23 +350,25 @@ public class TabDetailPager extends MenuDetaiBasePager{
 
         @Override
         public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
-            return view==object;
+            return view == object;
         }
 
         @NonNull
         @Override
         public Object instantiateItem(@NonNull ViewGroup container, int position) {
-            ImageView imageView=new ImageView(context);
+            ImageView imageView = new ImageView(context);
             imageView.setBackgroundResource(R.drawable.home_scroll_default);//设置默认图片
             imageView.setScaleType(ImageView.ScaleType.FIT_XY);//拉伸图片来填充背景
             container.addView(imageView);
 
-            TabDetailPagerBean.DataEntity.TopnewsData topnewsData=topNews.get(position);
+            TabDetailPagerBean.DataEntity.TopnewsData topnewsData = topNews.get(position);
 
-            String url= Constants.BASE_URL+topnewsData.getTopimage();//图片地址
+            String url = Constants.BASE_URL + topnewsData.getTopimage();//图片地址
             //网络请求图片
 //            x.image().bind(imageView,url,imageOptions);
-            Glide.with(context).load(url).into(imageView);
+
+            Glide.with(context).load(url).apply(options).into(imageView);
+
             return imageView;
         }
 
@@ -296,10 +380,11 @@ public class TabDetailPager extends MenuDetaiBasePager{
 
     /**
      * //解析json数据，对象映射解析
+     *
      * @param json
      * @return
      */
     private TabDetailPagerBean parsedJson(String json) {
-        return new Gson().fromJson(json,TabDetailPagerBean.class);
+        return new Gson().fromJson(json, TabDetailPagerBean.class);
     }
 }
