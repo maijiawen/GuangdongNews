@@ -24,6 +24,7 @@ import com.example.guangdongnews.utils.CacheUtils;
 import com.example.guangdongnews.utils.Constants;
 import com.example.guangdongnews.utils.DensityUtil;
 import com.example.guangdongnews.utils.LogUtil;
+import com.example.guangdongnews.view.HorizontalScrollViewPager;
 import com.google.gson.Gson;
 
 import org.xutils.common.Callback;
@@ -54,7 +55,7 @@ public class TabDetailPager extends MenuDetaiBasePager{
     private String url;
     private ImageOptions imageOptions;
 
-    private ViewPager viewPager;
+    private HorizontalScrollViewPager viewPager;
     private TextView tv_title;
     private LinearLayout ll_point_group;
     private ListView listView;
