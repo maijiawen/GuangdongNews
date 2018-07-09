@@ -40,4 +40,14 @@ public class NoScrollViewPager extends ViewPager {
     public boolean onTouchEvent(MotionEvent ev) {
         return true;
     }
+
+    /**
+     * 让事件传递下去
+     * @param ev
+     * @return
+     */
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return false;
+    }
 }

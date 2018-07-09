@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.guangdongnews.R;
 import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
@@ -195,7 +196,8 @@ public class TabDetailPager extends MenuDetaiBasePager{
             TabDetailPagerBean.DataEntity.NewsData news=newsData.get(position);
             String imgUrl=Constants.BASE_URL+news.getListimage();
             //请求网络图片
-            x.image().bind(viewHolder.iv_icon,imgUrl,imageOptions);
+//            x.image().bind(viewHolder.iv_icon,imgUrl,imageOptions);
+            Glide.with(context).load(imgUrl).into(viewHolder.iv_icon);
             //标题
             viewHolder.tv_title.setText(news.getTitle());
             //时间
@@ -280,7 +282,8 @@ public class TabDetailPager extends MenuDetaiBasePager{
 
             String url= Constants.BASE_URL+topnewsData.getTopimage();//图片地址
             //网络请求图片
-            x.image().bind(imageView,url);
+//            x.image().bind(imageView,url,imageOptions);
+            Glide.with(context).load(url).into(imageView);
             return imageView;
         }
 
