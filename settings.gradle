@@ -1,3 +1,8 @@
 include ':app'
 include ':SlidingMenu_library'
 include ':ViewPagerIndicator_library'
+include ':PullToRefresh_library'
+include ':library'
+include ':pullToRefreshListFragment'
+include ':pullToRefreshViewPager'
+include ':PullToRefresh_sample'
