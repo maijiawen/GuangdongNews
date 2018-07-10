@@ -11,6 +11,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -32,6 +33,7 @@ import com.example.guangdongnews.view.HorizontalScrollViewPager;
 import com.google.gson.Gson;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
+import com.handmark.pulltorefresh.library.extras.SoundPullEventListener;
 
 import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
@@ -47,6 +49,8 @@ import java.util.List;
  * 版本信息: V1.0.0
  **/
 public class TabDetailPager extends MenuDetaiBasePager {
+    public static final String READ_ARRAY_ID = "read_array_id";//存储点击过的item的组key
+    private String id_Array=""; //存储点击过的item的组value
     private final NewsCenterPagerBean.DataBean.ChildrenData childrenData;
     /**
      * 顶部轮播图部分的数据
@@ -76,11 +80,12 @@ public class TabDetailPager extends MenuDetaiBasePager {
     private int prePosition;
     private String moreUrl;//下一页的网址
 
+
     public TabDetailPager(Context context, NewsCenterPagerBean.DataBean.ChildrenData childrenData) {
         super(context);
         this.childrenData = childrenData;
         //Glide加载图片或者加载失败时默认显示的图片
-         options = new RequestOptions()
+        options = new RequestOptions()
                 .placeholder(R.drawable.news_pic_default).error(R.drawable.news_pic_default);
     }
 
@@ -88,20 +93,46 @@ public class TabDetailPager extends MenuDetaiBasePager {
     public View initView() {
         View view = View.inflate(context, R.layout.tabdetail_pager, null);
 
-        pullToRefreshListView=view.findViewById(R.id.pull_refresh_list);
-        listView = pullToRefreshListView.getRefreshableView();
+        pullToRefreshListView = view.findViewById(R.id.pull_refresh_list);
+
 
         View topNewsView = View.inflate(context, R.layout.topnews, null);
         viewPager = topNewsView.findViewById(R.id.viewpager);
         tv_title = topNewsView.findViewById(R.id.tv_title);
         ll_point_group = topNewsView.findViewById(R.id.ll_point_group);
 
-
+        listView = pullToRefreshListView.getRefreshableView(); //获取listview
         listView.addHeaderView(topNewsView);//将viewpager融入listview的头部
+        listView.setOnItemClickListener(new MyOnItemClickListener());
         //设置模式 支持下拉刷新 上拉加载
         pullToRefreshListView.setMode(PullToRefreshBase.Mode.BOTH);
-        pullToRefreshListView.setOnRefreshListener(new MyRefreshListener());
+        pullToRefreshListView.setOnRefreshListener(new MyRefreshListener());//刷新监听器
+//        pullToRefreshListView.setOnItemClickListener(new MyOnItemClickListener());
+        /**
+         * Add Sound Event Listener
+         * 这个是上下拉动刷新的的声音特效
+         */
+        SoundPullEventListener<ListView> soundListener = new SoundPullEventListener<ListView>(context);
+        soundListener.addSoundEvent(PullToRefreshBase.State.PULL_TO_REFRESH, R.raw.pull_event);
+        soundListener.addSoundEvent(PullToRefreshBase.State.RESET, R.raw.reset_sound);
+        soundListener.addSoundEvent(PullToRefreshBase.State.REFRESHING, R.raw.refreshing_sound);
+        pullToRefreshListView.setOnPullEventListener(soundListener);
         return view;
+    }
+
+    class MyOnItemClickListener implements AdapterView.OnItemClickListener{
+
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+            int realPosition=position-2;//因为listview顶部有两个view分别是 刷新控件和viewpager
+            TabDetailPagerBean.DataEntity.NewsData  newsBean=newsData.get(realPosition);
+            id_Array=CacheUtils.getString(context,READ_ARRAY_ID);
+            if(!id_Array.contains(newsBean.getId()+"")){
+                //若没有存在该id，就添加进去
+                CacheUtils.putString(context,READ_ARRAY_ID,id_Array+newsBean.getId()+",");
+                listAdapter.notifyDataSetChanged(); //getcount  --->  getView
+            }
+        }
     }
 
     @Override
@@ -169,15 +200,15 @@ public class TabDetailPager extends MenuDetaiBasePager {
         listAdapter = new TopDetailPageListAdapter();
         listView.setAdapter(listAdapter);
 //        listView.setOnScrollListener(new OnMyListviewScrollListener());
-        moreUrl="";//清空内容
-        if(!TextUtils.isEmpty(bean.getData().getMore())){
+        moreUrl = "";//清空内容
+        if (!TextUtils.isEmpty(bean.getData().getMore())) {
             //下一页内容不为空的话，获取下一页的网址
-            moreUrl=Constants.BASE_URL+bean.getData().getMore();
+            moreUrl = Constants.BASE_URL + bean.getData().getMore();
         }
 //        LogUtil.e("title "+bean.getData().getNews().get(0).getTitle());
     }
 
-    class MyRefreshListener implements PullToRefreshBase.OnRefreshListener2<ListView>{
+    class MyRefreshListener implements PullToRefreshBase.OnRefreshListener2<ListView> {
 
         @Override
         public void onPullDownToRefresh(PullToRefreshBase<ListView> refreshView) {
@@ -187,39 +218,19 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
             // Update the LastUpdatedLabel
             refreshView.getLoadingLayoutProxy().setLastUpdatedLabel(label);
-                getDateFromNet();
+            getDateFromNet();
         }
 
         @Override
         public void onPullUpToRefresh(PullToRefreshBase<ListView> refreshView) {
 //            Toast.makeText(context, "我在这里上拉刷新了", Toast.LENGTH_SHORT).show();
-                if(listView.getLastVisiblePosition()>=listAdapter.getCount()-1){
-                    getMoreDataFromNet();
+            if (listView.getLastVisiblePosition() >= listAdapter.getCount() - 1) {
+                getMoreDataFromNet();
 //                    Toast.makeText(context,"加载更多",Toast.LENGTH_SHORT).show();
-                }
+            }
         }
     }
 
-//    class OnMyListviewScrollListener implements AbsListView.OnScrollListener {
-//
-//        @Override
-//        public void onScrollStateChanged(AbsListView absListView, int scrollState) {
-//            if(scrollState== AbsListView.OnScrollListener.SCROLL_STATE_IDLE||
-//                    scrollState== AbsListView.OnScrollListener.SCROLL_STATE_FLING){
-//                //若可视的最后一个是列表的最后一个，则加载更多
-//                if(listView.getLastVisiblePosition()>=listAdapter.getCount()-1){
-//                    getMoreDataFromNet();
-//                    Toast.makeText(context,"加载更多",Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//        }
-//
-//        @Override
-//        public void onScroll(AbsListView absListView,
-//                             int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-//
-//        }
-//    }
 
     /**
      * 加载下一页网络数据
@@ -232,7 +243,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
                 pullToRefreshListView.onRefreshComplete();
                 CacheUtils.putString(context, moreUrl, result);//将网址写入缓存中
                 processMoreData(result);
-                LogUtil.e("getMoreDataFromNet onSuccess data= "+result);
+                LogUtil.e("getMoreDataFromNet onSuccess data= " + result);
             }
 
             @Override
@@ -254,6 +265,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
     /**
      * 处理下一页的网络请求返回的数据
+     *
      * @param json
      */
     private void processMoreData(String json) {
@@ -262,12 +274,12 @@ public class TabDetailPager extends MenuDetaiBasePager {
         moreNewsData = bean.getData().getNews();
         newsData.addAll(moreNewsData);
         listAdapter.notifyDataSetChanged();
-        moreUrl="";//清空内容
-        if(!TextUtils.isEmpty(bean.getData().getMore())){
+        moreUrl = "";//清空内容
+        if (!TextUtils.isEmpty(bean.getData().getMore())) {
             //下一页内容不为空的话，获取下一页的网址
-            moreUrl=Constants.BASE_URL+bean.getData().getMore();
-        }else{
-            Toast.makeText(context,"没有更多的了...",Toast.LENGTH_SHORT).show();
+            moreUrl = Constants.BASE_URL + bean.getData().getMore();
+        } else {
+            Toast.makeText(context, "没有更多的了...", Toast.LENGTH_SHORT).show();
         }
         LogUtil.e("getMoreDataFromNet processMoreData success!! ");
     }
@@ -294,6 +306,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
         @Override
         public View getView(int position, View view, ViewGroup viewGroup) {
+            LogUtil.e("getView!!!");
             ViewHolder viewHolder;
             if (view == null) {
                 view = View.inflate(context, R.layout.item_tabdetail_pager, null);
@@ -315,6 +328,15 @@ public class TabDetailPager extends MenuDetaiBasePager {
             viewHolder.tv_title.setText(news.getTitle());
             //时间
             viewHolder.tv_time.setText(news.getPubdate());
+            id_Array=CacheUtils.getString(context,READ_ARRAY_ID);
+            if(id_Array.contains(news.getId()+"")){
+                LogUtil.e("getView GRAY!!!");
+                //如果是之前点过的item，就将其设置为灰色
+                viewHolder.tv_title.setTextColor(Color.GRAY);
+            }else{
+                //黑色
+                viewHolder.tv_title.setTextColor(Color.BLACK);
+            }
             return view;
         }
 
