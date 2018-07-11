@@ -9,12 +9,10 @@ import android.widget.TextView;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.example.guangdongnews.activity.MainActivity;
 import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.base.BasePager;
@@ -22,7 +20,7 @@ import com.example.guangdongnews.domain.NewsCenterPagerBean;
 import com.example.guangdongnews.fragment.LeftmenuFragment;
 import com.example.guangdongnews.menudetailpage.InteracMenuDetailBasePager;
 import com.example.guangdongnews.menudetailpage.NewsMenuDetailBasePager;
-import com.example.guangdongnews.menudetailpage.PhotosMenuDetailBasePager;
+import com.example.guangdongnews.menudetailpage.PhotosMenuDetailPager;
 import com.example.guangdongnews.menudetailpage.TopicMenuDetailBasePager;
 import com.example.guangdongnews.utils.CacheUtils;
 import com.example.guangdongnews.utils.Constants;
@@ -170,7 +168,7 @@ public class NewsCenterPager extends BasePager {
         detaiBasePagers = new ArrayList<>();
         detaiBasePagers.add(new NewsMenuDetailBasePager(context,data.get(0)));//新闻详情页面
         detaiBasePagers.add(new TopicMenuDetailBasePager(context));//专题详情页面
-        detaiBasePagers.add(new PhotosMenuDetailBasePager(context));//图组详情页面
+        detaiBasePagers.add(new PhotosMenuDetailPager(context,data.get(2)));//图组详情页面
         detaiBasePagers.add(new InteracMenuDetailBasePager(context));//互动详情页面
 
         leftmenuFragment.setData(data);//传递数据给左侧菜单
@@ -208,6 +206,24 @@ public class NewsCenterPager extends BasePager {
             detailBasePager.initData();//初始化数据
             fl_content.addView(rootView);
 
+            //如果是图组页面，才让图片切换按钮显示
+            if(position ==2){
+                //图组详情页面
+                ib_swich_list_grid.setVisibility(View.VISIBLE);
+                //设置点击事件
+                ib_swich_list_grid.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //1.得到图组详情页面对象
+                        PhotosMenuDetailPager detailPager = (PhotosMenuDetailPager) detaiBasePagers.get(2);
+                        //2.调用图组对象的切换ListView和GridView的方法
+                        detailPager.swichListAndGrid(ib_swich_list_grid);
+                    }
+                });
+            }else{
+                //其他页面
+                ib_swich_list_grid.setVisibility(View.GONE);
+            }
         }
     }
 }
