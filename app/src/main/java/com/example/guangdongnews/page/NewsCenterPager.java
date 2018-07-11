@@ -7,6 +7,14 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.guangdongnews.activity.MainActivity;
 import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.base.BasePager;
@@ -19,12 +27,14 @@ import com.example.guangdongnews.menudetailpage.TopicMenuDetailBasePager;
 import com.example.guangdongnews.utils.CacheUtils;
 import com.example.guangdongnews.utils.Constants;
 import com.example.guangdongnews.utils.LogUtil;
+import com.example.guangdongnews.volley.VolleyManager;
 import com.google.gson.Gson;
 
 import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
 import org.xutils.x;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,13 +79,53 @@ public class NewsCenterPager extends BasePager {
             //试图获取缓存
             processData(saveJson);
         }
-        getDataFromNet();//请求网络
+//        getDataFromNetByXutils();//请求网络
+        getDataFromNetByVolley();
     }
+
+    /**
+     * Volley 请求网络数据
+     */
+    private void getDataFromNetByVolley(){
+        //请求队列
+//        RequestQueue queue = Volley.newRequestQueue(context);
+        StringRequest request=new StringRequest(Request.Method.GET, Constants.NEWSCENTER_PAGER_URL, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String result) {
+                LogUtil.e("使用Volley联网请求成功==" + result);
+                //缓存数据
+                CacheUtils.putString(context,Constants.NEWSCENTER_PAGER_URL,result);
+
+                processData(result);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                LogUtil.e("使用Volley联网请求失败==" + volleyError.getMessage());
+            }
+        }){
+            @Override
+            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                try {
+                    //转码
+                    String  parsed = new String(response.data, "UTF-8");
+                    return Response.success(parsed, HttpHeaderParser.parseCacheHeaders(response));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                return super.parseNetworkResponse(response);
+            }
+        };
+//        queue.add(request);
+        //添加到队列
+        VolleyManager.getRequestQueue().add(request);
+    }
+
 
     /**
      * 使用xutils3 请求网络数据
      */
-    private void getDataFromNet() {
+    private void getDataFromNetByXutils() {
         RequestParams params = new RequestParams(Constants.NEWSCENTER_PAGER_URL);
         x.http().get(params, new Callback.CommonCallback<String>() {
             @Override

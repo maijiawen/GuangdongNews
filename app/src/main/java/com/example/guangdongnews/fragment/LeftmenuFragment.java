@@ -72,6 +72,9 @@ public class LeftmenuFragment extends BaseFragment {
         }
 
         leftAdapter=new LeftAdapter();
+        if(listView==null){
+            listView=new ListView(context);
+        }
         listView.setAdapter(leftAdapter);
         swichPager(prePosition);
     }

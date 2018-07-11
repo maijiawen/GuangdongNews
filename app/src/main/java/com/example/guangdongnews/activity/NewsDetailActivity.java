@@ -114,6 +114,7 @@ public class NewsDetailActivity extends Activity implements View.OnClickListener
         builder.setSingleChoiceItems(items, realSize, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                //在选择框选中时的缓存值
                 tempSize = which;
             }
         });
@@ -121,12 +122,12 @@ public class NewsDetailActivity extends Activity implements View.OnClickListener
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
+                //点击确定时的值
                 realSize = tempSize;
                 changeTextSize(realSize);
             }
         });
-        builder.show();
+        builder.show();//显示消息框
 
     }
 
