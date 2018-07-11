@@ -3,12 +3,15 @@ package com.example.guangdongnews.page.tabdetailpager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -71,16 +74,18 @@ public class TabDetailPager extends MenuDetaiBasePager {
     private String url;
     private RequestOptions options;//glide加载图片时默认显示的图片
 
-    private HorizontalScrollViewPager viewPager;
+    private HorizontalScrollViewPager viewPager;//自定义处理触摸事件
     private TextView tv_title;
-    private LinearLayout ll_point_group;
+    private LinearLayout ll_point_group;//红点视图组
     private ListView listView;
     private PullToRefreshListView pullToRefreshListView;
-
     private TopDetailPageListAdapter listAdapter;
 
-    private int prePosition;
+    private int prePosition;//红点的上一次的位置
     private String moreUrl;//下一页的网址
+
+    private InternalHandler internalHandler;//定时轮播图片的消息处理
+    private  boolean isDragging = false;//是否拖拽中
 
 
     public TabDetailPager(Context context, NewsCenterPagerBean.DataBean.ChildrenData childrenData) {
@@ -114,11 +119,11 @@ public class TabDetailPager extends MenuDetaiBasePager {
          * Add Sound Event Listener
          * 这个是上下拉动刷新的的声音特效
          */
-        SoundPullEventListener<ListView> soundListener = new SoundPullEventListener<ListView>(context);
-        soundListener.addSoundEvent(PullToRefreshBase.State.PULL_TO_REFRESH, R.raw.pull_event);
-        soundListener.addSoundEvent(PullToRefreshBase.State.RESET, R.raw.reset_sound);
-        soundListener.addSoundEvent(PullToRefreshBase.State.REFRESHING, R.raw.refreshing_sound);
-        pullToRefreshListView.setOnPullEventListener(soundListener);
+//        SoundPullEventListener<ListView> soundListener = new SoundPullEventListener<ListView>(context);
+//        soundListener.addSoundEvent(PullToRefreshBase.State.PULL_TO_REFRESH, R.raw.pull_event);
+//        soundListener.addSoundEvent(PullToRefreshBase.State.RESET, R.raw.reset_sound);
+//        soundListener.addSoundEvent(PullToRefreshBase.State.REFRESHING, R.raw.refreshing_sound);
+//        pullToRefreshListView.setOnPullEventListener(soundListener);
         return view;
     }
 
@@ -215,7 +220,42 @@ public class TabDetailPager extends MenuDetaiBasePager {
             //下一页内容不为空的话，获取下一页的网址
             moreUrl = Constants.BASE_URL + bean.getData().getMore();
         }
+        viewPagerTimer();
 //        LogUtil.e("title "+bean.getData().getNews().get(0).getTitle());
+    }
+
+    /**
+     * 定时轮播图片处理的方法
+     */
+    private void viewPagerTimer(){
+        //发消息每隔4000切换一次ViewPager页面
+        if(internalHandler == null){
+            internalHandler = new InternalHandler();
+        }
+
+        //是把消息队列所有的消息和回调移除
+        internalHandler.removeCallbacksAndMessages(null);
+        internalHandler.postDelayed(new MyRunnable(),4000);
+    }
+
+    class InternalHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            //切换ViewPager的下一个页面
+            int item = (viewPager.getCurrentItem()+1)%topNews.size();
+            viewPager.setCurrentItem(item);
+            internalHandler.postDelayed(new MyRunnable(), 4000);
+
+        }
+    }
+
+    class MyRunnable implements  Runnable{
+
+        @Override
+        public void run() {
+            internalHandler.sendEmptyMessage(0);
+        }
     }
 
     class MyRefreshListener implements PullToRefreshBase.OnRefreshListener2<ListView> {
@@ -401,7 +441,25 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
         @Override
         public void onPageScrollStateChanged(int state) {
+            if(state ==ViewPager.SCROLL_STATE_DRAGGING){//拖拽
+                isDragging = true;
+                LogUtil.e("拖拽");
+                //拖拽要移除消息
+                internalHandler.removeCallbacksAndMessages(null);
+            }else if(state ==ViewPager.SCROLL_STATE_SETTLING&&isDragging){//惯性
+                //发消息
+                LogUtil.e("惯性");
+                isDragging = false;
+                internalHandler.removeCallbacksAndMessages(null);
+                internalHandler.postDelayed(new MyRunnable(),4000);
 
+            }else if(state ==ViewPager.SCROLL_STATE_IDLE&&isDragging){//静止状态
+                //发消息
+                LogUtil.e("静止状态");
+                isDragging = false;
+                internalHandler.removeCallbacksAndMessages(null);
+                internalHandler.postDelayed(new MyRunnable(),4000);
+            }
         }
     }
 
@@ -435,7 +493,24 @@ public class TabDetailPager extends MenuDetaiBasePager {
 //            x.image().bind(imageView,url,imageOptions);
 
             Glide.with(context).load(url).apply(options).into(imageView);
-
+            imageView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    switch (event.getAction()){
+                        case MotionEvent.ACTION_DOWN://按下
+                            LogUtil.e("按下");
+                            //是把消息队列所有的消息和回调移除
+                            internalHandler.removeCallbacksAndMessages(null);
+                            break;
+                        case MotionEvent.ACTION_UP://离开
+                            LogUtil.e("离开");
+                            //是把消息队列所有的消息和回调移除
+                            internalHandler.removeCallbacksAndMessages(null);
+                            internalHandler.postDelayed(new MyRunnable(), 4000);
+                    }
+                    return true;
+                }
+            });
             return imageView;
         }
 

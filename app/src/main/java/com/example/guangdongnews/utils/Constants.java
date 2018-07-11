@@ -12,7 +12,7 @@ public class Constants {
     /**
      * 联网请求的ip和端口
      */
-    public static final String BASE_URL = "http://192.168.1.102:8080/web_home";
+    public static final String BASE_URL = "http://193.112.217.25:8080/web_home";
 
     /**
      * 新闻中心的网络地址
