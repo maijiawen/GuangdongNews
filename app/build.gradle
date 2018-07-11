@@ -31,6 +31,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation project(':ViewPagerIndicator_library')
     implementation 'com.github.bumptech.glide:glide:4.7.1'
+    implementation 'com.android.support:design:27.1.1'
     implementation project(':PullToRefresh_library')
     implementation files('libs/volley.jar')
 }
