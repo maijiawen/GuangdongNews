@@ -1,6 +1,7 @@
 package com.example.guangdongnews.page.tabdetailpager;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.guangdongnews.R;
+import com.example.guangdongnews.activity.NewsDetailActivity;
 import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
 import com.example.guangdongnews.domain.TabDetailPagerBean;
@@ -120,6 +122,9 @@ public class TabDetailPager extends MenuDetaiBasePager {
         return view;
     }
 
+    /**
+     * 列表点击处理
+     */
     class MyOnItemClickListener implements AdapterView.OnItemClickListener{
 
         @Override
@@ -132,6 +137,11 @@ public class TabDetailPager extends MenuDetaiBasePager {
                 CacheUtils.putString(context,READ_ARRAY_ID,id_Array+newsBean.getId()+",");
                 listAdapter.notifyDataSetChanged(); //getcount  --->  getView
             }
+            //跳新闻详情activity
+            //即跳转到新闻浏览页面
+            Intent intent = new Intent(context,NewsDetailActivity.class);
+            intent.putExtra("url",Constants.BASE_URL+newsBean.getUrl());
+            context.startActivity(intent);
         }
     }
 
