@@ -5,11 +5,13 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Window;
 
 import com.example.guangdongnews.R;
 import com.example.guangdongnews.fragment.ContentFragment;
 import com.example.guangdongnews.fragment.LeftmenuFragment;
+import com.example.guangdongnews.utils.M;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.jeremyfeinstein.slidingmenu.lib.app.SlidingFragmentActivity;
 
@@ -23,10 +25,12 @@ public class MainActivity extends SlidingFragmentActivity {
 
     public static final String MAIN_CONTENT_TAG = "main_content_tag";
     public static final String LEFTMENU_TAG = "leftmenu_tag";
+    private String TAG=MainActivity.class.getSimpleName();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        M.d(TAG, "onCreate: ");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         //1.设置主页面
         setContentView(R.layout.activity_main);
@@ -66,6 +70,8 @@ public class MainActivity extends SlidingFragmentActivity {
         ft.replace(R.id.fl_leftmenu, new LeftmenuFragment(), LEFTMENU_TAG);//左侧菜单
         //4.提交
         ft.commit();
+        M.d(TAG, "initFragment: ");
+
     }
 
     /**

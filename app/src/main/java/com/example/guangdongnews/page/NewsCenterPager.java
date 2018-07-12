@@ -3,6 +3,7 @@ package com.example.guangdongnews.page;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
@@ -25,6 +26,7 @@ import com.example.guangdongnews.menudetailpage.TopicMenuDetailPager;
 import com.example.guangdongnews.utils.CacheUtils;
 import com.example.guangdongnews.utils.Constants;
 import com.example.guangdongnews.utils.LogUtil;
+import com.example.guangdongnews.utils.M;
 import com.example.guangdongnews.volley.VolleyManager;
 import com.google.gson.Gson;
 
@@ -45,6 +47,7 @@ import java.util.List;
 public class NewsCenterPager extends BasePager {
 
     private List<NewsCenterPagerBean.DataBean> data;
+    private String TAG=NewsCenterPager.class.getSimpleName();
 
     /**
      * 详情页面的集合
@@ -59,7 +62,7 @@ public class NewsCenterPager extends BasePager {
     @Override
     public void initData() {
         super.initData();
-        LogUtil.e("新闻中心数据被初始化了..");
+        M.d(TAG, "initData: ");
         ib_menu.setVisibility(View.VISIBLE);
         //1.设置标题
 //        tv_title.setText("新闻中心");
@@ -75,10 +78,14 @@ public class NewsCenterPager extends BasePager {
         String saveJson=CacheUtils.getString(context,Constants.NEWSCENTER_PAGER_URL);
         if(!TextUtils.isEmpty(saveJson)){
             //试图获取缓存
+            M.d(TAG, "processData:from saveJson ");
             processData(saveJson);
+        }else{
+            M.d(TAG, "getDataFromNetByVolley");
+            getDataFromNetByVolley();
         }
 //        getDataFromNetByXutils();//请求网络
-        getDataFromNetByVolley();
+
     }
 
     /**
@@ -90,7 +97,7 @@ public class NewsCenterPager extends BasePager {
         StringRequest request=new StringRequest(Request.Method.GET, Constants.NEWSCENTER_PAGER_URL, new Response.Listener<String>() {
             @Override
             public void onResponse(String result) {
-                LogUtil.e("使用Volley联网请求成功==" + result);
+                M.d(TAG,"使用Volley联网请求成功==" + result);
                 //缓存数据
                 CacheUtils.putString(context,Constants.NEWSCENTER_PAGER_URL,result);
 
@@ -99,7 +106,7 @@ public class NewsCenterPager extends BasePager {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
-                LogUtil.e("使用Volley联网请求失败==" + volleyError.getMessage());
+                M.d(TAG,"使用Volley联网请求失败==" + volleyError.getMessage());
             }
         }){
             @Override
@@ -130,22 +137,22 @@ public class NewsCenterPager extends BasePager {
             public void onSuccess(String result) {
                 CacheUtils.putString(context,Constants.NEWSCENTER_PAGER_URL,result);//缓存文本
                 processData(result);
-                LogUtil.e("使用xUtils3联网请求成功==");
+                M.d(TAG,"使用xUtils3联网请求成功==");
             }
 
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
-                LogUtil.e("使用xUtils3联网请求错误==" + ex.getMessage());
+                M.d(TAG,"使用xUtils3联网请求错误==" + ex.getMessage());
             }
 
             @Override
             public void onCancelled(CancelledException cex) {
-                LogUtil.e("取消使用xUtils3联网请求==" + cex.getMessage());
+                M.d(TAG,"取消使用xUtils3联网请求==" + cex.getMessage());
             }
 
             @Override
             public void onFinished() {
-                LogUtil.e("使用xUtils3-onFinished");
+                M.d(TAG,"使用xUtils3-onFinished");
             }
         });
     }
@@ -155,6 +162,7 @@ public class NewsCenterPager extends BasePager {
      * @param json
      */
     private void processData(String json){
+
         NewsCenterPagerBean bean=parseJson(json);
         String title=bean.getData().get(0).getChildren().get(0).getTitle();
         data=bean.getData();
@@ -172,8 +180,8 @@ public class NewsCenterPager extends BasePager {
         detaiBasePagers.add(new InteracMenuDetailPager(context,data.get(2)));//互动详情页面
 
         leftmenuFragment.setData(data);//传递数据给左侧菜单
-
-        LogUtil.e("json title = "+title);
+        M.d(TAG, "processData: 传递数据给左侧菜单");
+        M.d(TAG,"json title = "+title);
     }
 
     /**
@@ -200,7 +208,7 @@ public class NewsCenterPager extends BasePager {
             fl_content.removeAllViews();//移除之前的视图
 
             //3.添加新内容
-            LogUtil.e("swichPager position = "+position);
+            M.d(TAG,"mjw swichPager position = "+position);
             MenuDetaiBasePager detailBasePager = detaiBasePagers.get(position);//
             View rootView = detailBasePager.rootView;
             detailBasePager.initData();//初始化数据

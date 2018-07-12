@@ -1,9 +1,11 @@
 package com.example.guangdongnews.page.tabdetailpager;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
@@ -23,9 +25,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.NetworkResponse;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
+import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.guangdongnews.R;
+import com.example.guangdongnews.activity.MainActivity;
 import com.example.guangdongnews.activity.NewsDetailActivity;
 import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
@@ -34,7 +41,9 @@ import com.example.guangdongnews.utils.CacheUtils;
 import com.example.guangdongnews.utils.Constants;
 import com.example.guangdongnews.utils.DensityUtil;
 import com.example.guangdongnews.utils.LogUtil;
+import com.example.guangdongnews.utils.M;
 import com.example.guangdongnews.view.HorizontalScrollViewPager;
+import com.example.guangdongnews.volley.VolleyManager;
 import com.google.gson.Gson;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
@@ -45,7 +54,14 @@ import org.xutils.http.RequestParams;
 import org.xutils.image.ImageOptions;
 import org.xutils.x;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * 功能描述:  页签详情页面
@@ -87,9 +103,13 @@ public class TabDetailPager extends MenuDetaiBasePager {
     private InternalHandler internalHandler;//定时轮播图片的消息处理
     private  boolean isDragging = false;//是否拖拽中
 
+    private OkHttpClient client;
+    private String TAG=TabDetailPager.class.getSimpleName();
+    private TabDetailPagerBean bean;
 
     public TabDetailPager(Context context, NewsCenterPagerBean.DataBean.ChildrenData childrenData) {
         super(context);
+        M.d(TAG,"TabDetailPager super");
         this.childrenData = childrenData;
         //Glide加载图片或者加载失败时默认显示的图片
         options = new RequestOptions()
@@ -98,6 +118,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
     @Override
     public View initView() {
+        M.d(TAG,"initview 88");
         View view = View.inflate(context, R.layout.tabdetail_pager, null);
 
         pullToRefreshListView = view.findViewById(R.id.pull_refresh_list);
@@ -150,17 +171,86 @@ public class TabDetailPager extends MenuDetaiBasePager {
         }
     }
 
+
     @Override
     public void initData() {
         super.initData();
+        M.d(TAG,"mjw initData");
         url = Constants.BASE_URL + childrenData.getUrl();
         String saveJson = CacheUtils.getString(context, url);//获取之前的json网址缓存
         if (!TextUtils.isEmpty(saveJson)) {
             //如果之前有缓存的话，发起网络数据请求
             processData(saveJson);
         }
-        getDateFromNet();
-        LogUtil.e("childrenData title " + childrenData.getTitle() + " 网址 " + url);
+//        getDateFromNet();
+//         getDateFromNetByOkHttp();
+        getDataFromNetByVolley();
+        M.d(TAG,"mjw childrenData title " + childrenData.getTitle() + " 网址 " + url);
+    }
+
+
+
+    /**
+     * 使用volley联网请求数据
+     */
+    private void getDataFromNetByVolley() {
+        //String请求
+        StringRequest request = new StringRequest(com.android.volley.Request.Method.GET, url, new com.android.volley.Response.Listener<String>() {
+            @Override
+            public void onResponse(String result) {
+                LogUtil.e("使用Volley联网请求成功==" + result);
+                //缓存数据
+                CacheUtils.putString(context, url, result);
+
+                processData(result);
+            }
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                LogUtil.e("使用Volley联网请求失败==" + volleyError.getMessage());
+            }
+        }) {
+            @Override
+            protected com.android.volley.Response<String> parseNetworkResponse(NetworkResponse response) {
+                try {
+                    String parsed = new String(response.data, "UTF-8");
+                    return com.android.volley.Response.success(parsed, HttpHeaderParser.parseCacheHeaders(response));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                return super.parseNetworkResponse(response);
+            }
+        };
+
+        //添加到队列
+        VolleyManager.getRequestQueue().add(request);
+    }
+
+    /**
+     * 使用okhttp请求网路数据
+     */
+    private void getDateFromNetByOkHttp(){
+        M.d(TAG,"mjwgetDateFromNetByOkHttp");
+        client=new OkHttpClient();
+        Request request=new Request.Builder().get().url(url).build();
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                pullToRefreshListView.onRefreshComplete();
+                M.d(TAG,e.toString());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                pullToRefreshListView.onRefreshComplete();
+
+//                CacheUtils.putString(context, url, response.body().string());//将网址写入缓存中
+                processData(response.body().string());
+                    M.d(TAG,"mjw555");
+
+            }
+        });
+
     }
 
     /**
@@ -174,7 +264,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
                 pullToRefreshListView.onRefreshComplete();
                 CacheUtils.putString(context, url, result);//将网址写入缓存中
                 processData(result);
-//                LogUtil.e("onSuccess data= "+result);
+//                M.d(TAG,"onSuccess data= "+result);
             }
 
             @Override
@@ -194,34 +284,42 @@ public class TabDetailPager extends MenuDetaiBasePager {
         });
     }
 
+
     /**
      * 处理网络返回的json数据
      *
      * @param json
      */
     private void processData(String json) {
-        TabDetailPagerBean bean = parsedJson(json);
+        M.d(TAG,"mjw processData");
+        final TabDetailPagerBean bean = parsedJson(json);
         topNews = bean.getData().getTopnews();
         viewPager.setAdapter(new TabDetailPagerTopNewsAdapter());
 
         addPoint();
         viewPager.addOnPageChangeListener(new MyOnPageChangeListener());
         tv_title.setText(topNews.get(prePosition).getTitle());//设置图中标题
+        MainActivity mainActivity= (MainActivity) context;
+        mainActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //获取listview的数据
+                newsData = bean.getData().getNews();
+                //设置listview的适配器
+                listAdapter = new TopDetailPageListAdapter();
+                listView.setAdapter(listAdapter);
+             //  listView.setOnScrollListener(new OnMyListviewScrollListener());
+                moreUrl = "";//清空内容
+                if (!TextUtils.isEmpty(bean.getData().getMore())) {
+                    //下一页内容不为空的话，获取下一页的网址
+                    moreUrl = Constants.BASE_URL + bean.getData().getMore();
+                }
+                viewPagerTimer();
+                M.d(TAG,"title "+bean.getData().getNews().get(0).getTitle());
+                M.d(TAG,"mjw processData end");
+            }
+        });
 
-        //获取listview的数据
-        newsData = bean.getData().getNews();
-
-        //设置listview的适配器
-        listAdapter = new TopDetailPageListAdapter();
-        listView.setAdapter(listAdapter);
-//        listView.setOnScrollListener(new OnMyListviewScrollListener());
-        moreUrl = "";//清空内容
-        if (!TextUtils.isEmpty(bean.getData().getMore())) {
-            //下一页内容不为空的话，获取下一页的网址
-            moreUrl = Constants.BASE_URL + bean.getData().getMore();
-        }
-        viewPagerTimer();
-//        LogUtil.e("title "+bean.getData().getNews().get(0).getTitle());
     }
 
     /**
@@ -240,12 +338,21 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
     class InternalHandler extends Handler {
         @Override
-        public void handleMessage(Message msg) {
+        public void handleMessage(final Message msg) {
             super.handleMessage(msg);
-            //切换ViewPager的下一个页面
-            int item = (viewPager.getCurrentItem()+1)%topNews.size();
-            viewPager.setCurrentItem(item);
-            internalHandler.postDelayed(new MyRunnable(), 4000);
+            M.d(TAG,"mjw444");
+            switch (msg.what){
+                case 0:
+                    //切换ViewPager的下一个页面
+                    int item = (viewPager.getCurrentItem()+1)%topNews.size();
+                    viewPager.setCurrentItem(item);
+                    internalHandler.postDelayed(new MyRunnable(), 4000);
+                    break;
+                case 1:
+                    M.d(TAG,"mjw11111111");
+
+                    break;
+            }
 
         }
     }
@@ -293,7 +400,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
                 pullToRefreshListView.onRefreshComplete();
                 CacheUtils.putString(context, moreUrl, result);//将网址写入缓存中
                 processMoreData(result);
-                LogUtil.e("getMoreDataFromNet onSuccess data= " + result);
+                M.d(TAG,"getMoreDataFromNet onSuccess data= " + result);
             }
 
             @Override
@@ -331,7 +438,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
         } else {
             Toast.makeText(context, "没有更多的了...", Toast.LENGTH_SHORT).show();
         }
-        LogUtil.e("getMoreDataFromNet processMoreData success!! ");
+        M.d(TAG,"getMoreDataFromNet processMoreData success!! ");
     }
 
     /**
@@ -356,7 +463,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
         @Override
         public View getView(int position, View view, ViewGroup viewGroup) {
-            LogUtil.e("getView!!!");
+            M.d(TAG,"getView!!!");
             ViewHolder viewHolder;
             if (view == null) {
                 view = View.inflate(context, R.layout.item_tabdetail_pager, null);
@@ -380,7 +487,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
             viewHolder.tv_time.setText(news.getPubdate());
             id_Array=CacheUtils.getString(context,READ_ARRAY_ID);
             if(id_Array.contains(news.getId()+"")){
-                LogUtil.e("getView GRAY!!!");
+                M.d(TAG,"getView GRAY!!!");
                 //如果是之前点过的item，就将其设置为灰色
                 viewHolder.tv_title.setTextColor(Color.GRAY);
             }else{
@@ -443,19 +550,19 @@ public class TabDetailPager extends MenuDetaiBasePager {
         public void onPageScrollStateChanged(int state) {
             if(state ==ViewPager.SCROLL_STATE_DRAGGING){//拖拽
                 isDragging = true;
-                LogUtil.e("拖拽");
+                M.d(TAG,"拖拽");
                 //拖拽要移除消息
                 internalHandler.removeCallbacksAndMessages(null);
             }else if(state ==ViewPager.SCROLL_STATE_SETTLING&&isDragging){//惯性
                 //发消息
-                LogUtil.e("惯性");
+                M.d(TAG,"惯性");
                 isDragging = false;
                 internalHandler.removeCallbacksAndMessages(null);
                 internalHandler.postDelayed(new MyRunnable(),4000);
 
             }else if(state ==ViewPager.SCROLL_STATE_IDLE&&isDragging){//静止状态
                 //发消息
-                LogUtil.e("静止状态");
+                M.d(TAG,"静止状态");
                 isDragging = false;
                 internalHandler.removeCallbacksAndMessages(null);
                 internalHandler.postDelayed(new MyRunnable(),4000);
@@ -498,12 +605,12 @@ public class TabDetailPager extends MenuDetaiBasePager {
                 public boolean onTouch(View v, MotionEvent event) {
                     switch (event.getAction()){
                         case MotionEvent.ACTION_DOWN://按下
-                            LogUtil.e("按下");
+                            M.d(TAG,"按下");
                             //是把消息队列所有的消息和回调移除
                             internalHandler.removeCallbacksAndMessages(null);
                             break;
                         case MotionEvent.ACTION_UP://离开
-                            LogUtil.e("离开");
+                            M.d(TAG,"离开");
                             //是把消息队列所有的消息和回调移除
                             internalHandler.removeCallbacksAndMessages(null);
                             internalHandler.postDelayed(new MyRunnable(), 4000);

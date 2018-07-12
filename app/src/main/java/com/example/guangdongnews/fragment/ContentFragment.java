@@ -1,8 +1,10 @@
 package com.example.guangdongnews.fragment;
 
+import android.nfc.Tag;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
@@ -17,6 +19,7 @@ import com.example.guangdongnews.page.NewsCenterPager;
 import com.example.guangdongnews.page.SettingPager;
 import com.example.guangdongnews.page.SmartServicePager;
 import com.example.guangdongnews.utils.LogUtil;
+import com.example.guangdongnews.utils.M;
 import com.example.guangdongnews.view.NoScrollViewPager;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
@@ -40,9 +43,11 @@ public class ContentFragment extends BaseFragment {
 
     private ArrayList<BasePager> basePagers;//页面集合
 
+    private String TAG=ContentFragment.class.getSimpleName();
+
     @Override
     public View initView() {
-        LogUtil.e("正文Fragemnt视图被初始化了");
+        M.d(TAG, "initView: ");
         View view = View.inflate(context, R.layout.content_fragment, null);
 
         //1.把视图注入到框架中，让ContentFragment.this和View即布局文件关联起来
@@ -54,8 +59,7 @@ public class ContentFragment extends BaseFragment {
     public void initData() {
 
         super.initData();
-        LogUtil.e("正文Fragment数据被初始化了");
-
+        M.d(TAG, "initData: ");
         basePagers = new ArrayList<>();//实例化
         basePagers.add(new HomePager(context));//添加主页面
         basePagers.add(new NewsCenterPager(context));//添加新闻中心页面
@@ -63,10 +67,11 @@ public class ContentFragment extends BaseFragment {
         basePagers.add(new GovaffairPager(context));//添加政要中心页面
         basePagers.add(new SettingPager(context));//添加设置中心页面
         viewpager.setAdapter(new ContentFragmentAdapter());
-        viewpager.setOnPageChangeListener(new PageChangeListener());
+        viewpager.addOnPageChangeListener(new PageChangeListener());
         rg_main.setOnCheckedChangeListener(new GroupCheckedChangeListener());
         rg_main.check(R.id.rb_home);//设置默认选中主页
         basePagers.get(0).initData();
+        M.d(TAG, "initData: basePagers.get(0).initData()");
         isEnableSlidingMenu(SlidingMenu.TOUCHMODE_NONE);//设置默认不可滑动左侧菜单
 
     }
@@ -83,6 +88,7 @@ public class ContentFragment extends BaseFragment {
          */
         @Override
         public void onPageSelected(int position) {
+            M.d(TAG,"basePagers.get(position).initData() 初始化选中的页面的数据");
             basePagers.get(position).initData();  //初始化选中的页面的数据，避免预解析数据
         }
 

@@ -35,4 +35,5 @@ dependencies {
     implementation project(':PullToRefresh_library')
     implementation files('libs/volley.jar')
     implementation project(':PhotoView_library')
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
 }
