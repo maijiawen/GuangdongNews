@@ -169,7 +169,7 @@ public class NewsCenterPager extends BasePager {
         detaiBasePagers.add(new NewsMenuDetailBasePager(context,data.get(0)));//新闻详情页面
         detaiBasePagers.add(new TopicMenuDetailPager(context,data.get(0)));//专题详情页面
         detaiBasePagers.add(new PhotosMenuDetailPager(context,data.get(2)));//图组详情页面
-        detaiBasePagers.add(new InteracMenuDetailBasePager(context));//互动详情页面
+        detaiBasePagers.add(new InteracMenuDetailBasePager(context,data.get(2)));//互动详情页面
 
         leftmenuFragment.setData(data);//传递数据给左侧菜单
 
@@ -206,7 +206,7 @@ public class NewsCenterPager extends BasePager {
             detailBasePager.initData();//初始化数据
             fl_content.addView(rootView);
 
-            //如果是图组页面，才让图片切换按钮显示
+            //如果是图组/互动页面，才让图片切换按钮显示
             if(position ==2){
                 //图组详情页面
                 ib_swich_list_grid.setVisibility(View.VISIBLE);
@@ -217,6 +217,19 @@ public class NewsCenterPager extends BasePager {
                         //1.得到图组详情页面对象
                         PhotosMenuDetailPager detailPager = (PhotosMenuDetailPager) detaiBasePagers.get(2);
                         //2.调用图组对象的切换ListView和GridView的方法
+                        detailPager.swichListAndGrid(ib_swich_list_grid);
+                    }
+                });
+            }else if(position==3){
+                //互动详情页面
+                ib_swich_list_grid.setVisibility(View.VISIBLE);
+                //设置点击事件
+                ib_swich_list_grid.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //1.得到互动详情页面对象
+                        InteracMenuDetailBasePager detailPager = (InteracMenuDetailBasePager) detaiBasePagers.get(3);
+                        //2.调用互动对象的切换ListView和GridView的方法
                         detailPager.swichListAndGrid(ib_swich_list_grid);
                     }
                 });
