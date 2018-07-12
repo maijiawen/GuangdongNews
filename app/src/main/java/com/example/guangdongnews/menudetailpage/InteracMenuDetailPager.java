@@ -40,6 +40,8 @@ import org.xutils.x;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import uk.co.senab.photoview.PhotoView;
+
 /**
  * 功能描述:   互动页面
  * 时　　间: 2018/7/7.13:53

@@ -1,9 +1,11 @@
 package com.example.guangdongnews.menudetailpage;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -19,6 +21,7 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.StringRequest;
 import com.example.guangdongnews.R;
+import com.example.guangdongnews.activity.ShowImageActivity;
 import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
 import com.example.guangdongnews.domain.PhotosMenuDetailPagerBean;
@@ -33,6 +36,8 @@ import org.xutils.x;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+
+import uk.co.senab.photoview.PhotoView;
 
 /**
  * 功能描述:   组图页面
@@ -72,7 +77,21 @@ public class PhotosMenuDetailPager extends MenuDetaiBasePager {
     public View initView() {
         View view=View.inflate(context, R.layout.photos_menudetail_pager, null);
         x.view().inject(PhotosMenuDetailPager.this,view);
+        listview.setOnItemClickListener(new MyOnItemClickListener());
+        gridview.setOnItemClickListener(new MyOnItemClickListener());
         return view;
+    }
+
+    class MyOnItemClickListener implements AdapterView.OnItemClickListener{
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            PhotosMenuDetailPagerBean.DataEntity.NewsEntity newsEntity = news.get(position);
+            String imageUrl = Constants.BASE_URL+newsEntity.getLargeimage();
+            Intent intent = new Intent(context, ShowImageActivity.class);
+            intent.putExtra("url",imageUrl);
+            context.startActivity(intent);
+        }
     }
 
 

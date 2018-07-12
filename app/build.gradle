@@ -34,4 +34,5 @@ dependencies {
     implementation 'com.android.support:design:27.1.1'
     implementation project(':PullToRefresh_library')
     implementation files('libs/volley.jar')
+    implementation project(':PhotoView_library')
 }
