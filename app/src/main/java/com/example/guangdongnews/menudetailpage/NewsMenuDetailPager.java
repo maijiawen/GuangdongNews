@@ -30,7 +30,7 @@ import java.util.List;
  * 作    者: maijiawen
  * 版本信息: V1.0.0
  **/
-public class NewsMenuDetailBasePager extends MenuDetaiBasePager {
+public class NewsMenuDetailPager extends MenuDetaiBasePager {
 
     @ViewInject(R.id.viewpager)
     private ViewPager viewPager;
@@ -48,7 +48,7 @@ public class NewsMenuDetailBasePager extends MenuDetaiBasePager {
 
     private ArrayList<TabDetailPager> tabDetailPagers;
 
-    public NewsMenuDetailBasePager(Context context, NewsCenterPagerBean.DataBean dataBean) {
+    public NewsMenuDetailPager(Context context, NewsCenterPagerBean.DataBean dataBean) {
         super(context);
         children=dataBean.getChildren();
     }
@@ -56,7 +56,7 @@ public class NewsMenuDetailBasePager extends MenuDetaiBasePager {
     @Override
     public View initView() {
         View view=View.inflate(context, R.layout.newsmenu_detail_pager,null);
-        x.view().inject(NewsMenuDetailBasePager.this,view);
+        x.view().inject(NewsMenuDetailPager.this,view);
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

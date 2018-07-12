@@ -3,11 +3,9 @@ package com.example.guangdongnews.menudetailpage;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -48,7 +46,7 @@ import java.util.List;
  * 作    者: maijiawen
  * 版本信息: V1.0.0
  **/
-public class InteracMenuDetailBasePager extends MenuDetaiBasePager {
+public class InteracMenuDetailPager extends MenuDetaiBasePager {
 
     @ViewInject(R.id.listview)
     private ListView listview;
@@ -68,7 +66,7 @@ public class InteracMenuDetailBasePager extends MenuDetaiBasePager {
     private boolean isShowListView;
     private PhotosMenuDetailPagerAdapter adapter;
 
-    public InteracMenuDetailBasePager(Context context, NewsCenterPagerBean.DataBean dataBean) {
+    public InteracMenuDetailPager(Context context, NewsCenterPagerBean.DataBean dataBean) {
         super(context);
         this.dataBean=dataBean;
         bitmapCacheUtils = new BitmapCacheUtils(handler);
@@ -116,7 +114,7 @@ public class InteracMenuDetailBasePager extends MenuDetaiBasePager {
     @Override
     public View initView() {
         View view=View.inflate(context, R.layout.photos_menudetail_pager, null);
-        x.view().inject(InteracMenuDetailBasePager.this,view);
+        x.view().inject(InteracMenuDetailPager.this,view);
         return view;
     }
 

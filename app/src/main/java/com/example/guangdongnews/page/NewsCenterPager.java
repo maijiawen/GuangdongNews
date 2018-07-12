@@ -18,8 +18,8 @@ import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.base.BasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
 import com.example.guangdongnews.fragment.LeftmenuFragment;
-import com.example.guangdongnews.menudetailpage.InteracMenuDetailBasePager;
-import com.example.guangdongnews.menudetailpage.NewsMenuDetailBasePager;
+import com.example.guangdongnews.menudetailpage.InteracMenuDetailPager;
+import com.example.guangdongnews.menudetailpage.NewsMenuDetailPager;
 import com.example.guangdongnews.menudetailpage.PhotosMenuDetailPager;
 import com.example.guangdongnews.menudetailpage.TopicMenuDetailPager;
 import com.example.guangdongnews.utils.CacheUtils;
@@ -166,10 +166,10 @@ public class NewsCenterPager extends BasePager {
 
         //添加详情页面
         detaiBasePagers = new ArrayList<>();
-        detaiBasePagers.add(new NewsMenuDetailBasePager(context,data.get(0)));//新闻详情页面
+        detaiBasePagers.add(new NewsMenuDetailPager(context,data.get(0)));//新闻详情页面
         detaiBasePagers.add(new TopicMenuDetailPager(context,data.get(0)));//专题详情页面
         detaiBasePagers.add(new PhotosMenuDetailPager(context,data.get(2)));//图组详情页面
-        detaiBasePagers.add(new InteracMenuDetailBasePager(context,data.get(2)));//互动详情页面
+        detaiBasePagers.add(new InteracMenuDetailPager(context,data.get(2)));//互动详情页面
 
         leftmenuFragment.setData(data);//传递数据给左侧菜单
 
@@ -228,7 +228,7 @@ public class NewsCenterPager extends BasePager {
                     @Override
                     public void onClick(View v) {
                         //1.得到互动详情页面对象
-                        InteracMenuDetailBasePager detailPager = (InteracMenuDetailBasePager) detaiBasePagers.get(3);
+                        InteracMenuDetailPager detailPager = (InteracMenuDetailPager) detaiBasePagers.get(3);
                         //2.调用互动对象的切换ListView和GridView的方法
                         detailPager.swichListAndGrid(ib_swich_list_grid);
                     }
