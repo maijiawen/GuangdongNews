@@ -68,6 +68,9 @@ public class MainActivity extends SlidingFragmentActivity {
         //3.替换：先将之前已经存在的fragment先移除，再添加现有的进去
         ft.replace(R.id.fl_main_content,new ContentFragment(), MAIN_CONTENT_TAG);//主页
         ft.replace(R.id.fl_leftmenu, new LeftmenuFragment(), LEFTMENU_TAG);//左侧菜单
+
+//        ft.add(R.id.fl_leftmenu,new LeftmenuFragment());
+//        ft.add(R.id.fl_main_content,new ContentFragment());
         //4.提交
         ft.commit();
         M.d(TAG, "initFragment: ");

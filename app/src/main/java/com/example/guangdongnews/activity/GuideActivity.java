@@ -18,6 +18,7 @@ import com.example.guangdongnews.R;
 import com.example.guangdongnews.SplashActivity;
 import com.example.guangdongnews.utils.CacheUtils;
 import com.example.guangdongnews.utils.DensityUtil;
+import com.example.guangdongnews.utils.M;
 
 import java.util.ArrayList;
 
@@ -84,6 +85,14 @@ public class GuideActivity extends Activity {
      * 初始化数据
      */
     private void initData() {
+        initImageSet();
+        initPointSet();
+    }
+
+    /**
+     * 初始化轮播背景图片集合视图，提供给viewpager用
+     */
+    private void initImageSet(){
         //准备图片
         int[] ids = new int[]{
                 R.drawable.guide_1,
@@ -91,13 +100,21 @@ public class GuideActivity extends Activity {
                 R.drawable.guide_3
         };
         imageViews = new ArrayList<>(); //图片集合
-        widthdpi = DensityUtil.dip2px(this, 10);//将10dp转成对应的px
-        Log.e(TAG, " widthdpi = " + widthdpi);
-        //循环创造3个页面内容
         for (int i = 0; i < ids.length; i++) {
             ImageView imageView = new ImageView(this);
             imageView.setBackgroundResource(ids[i]);//设置背景
             imageViews.add(imageView);//添加到集合中
+        }
+    }
+
+    /**
+     * 初始化三个原点集合视图，添加到 ll_point_group
+     */
+    private void initPointSet(){
+        widthdpi = DensityUtil.dip2px(this, 10);//将10dp转成对应的px,形成原点之间的像素距离
+        Log.e(TAG, " widthdpi = " + widthdpi);
+        //循环创造3个页面内容
+        for (int i = 0; i < 3; i++) {
             ImageView point = new ImageView(this);//创建灰色圆点
             point.setBackgroundResource(R.drawable.point_normal);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(widthdpi, widthdpi);
@@ -106,7 +123,7 @@ public class GuideActivity extends Activity {
                 params.leftMargin = widthdpi;
             }
             point.setLayoutParams(params);
-            ll_point_group.addView(point);//将每个小圆点添加到线性布局里面
+            ll_point_group.addView(point);//将每个小圆点添加到线性布局里面,原点位置在布局里使用水平方向排列来设定好
         }
     }
 
@@ -145,9 +162,10 @@ public class GuideActivity extends Activity {
              * 两点间移动的距离 = 屏幕滑动百分比 * 间距
              */
             //两点间滑动距离对应的坐标 = 原来的起始位置 +  两点间移动的距离
-            int leftmargin = (int) (position * distance + (positionOffset * distance));
+            int leftmargin = (int) (position * distance + positionOffset * distance);
 
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) iv_red_point.getLayoutParams();
+            M.d(TAG,"leftmargin "+leftmargin+"百分比 "+positionOffset+" 滑动像素 "+positionOffsetPixels);
             params.leftMargin = leftmargin;
             iv_red_point.setLayoutParams(params);//动态设置红点的位置
 

@@ -10,6 +10,8 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.Gravity;
@@ -64,14 +66,16 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * 功能描述:  页签详情页面
+ * 功能描述:  实现北京/中国/国际/文娱...等10几页签详情的页面，
+ * 并通过供给向外提供的方法 initView NewsMenuDetailPager 使用
+ * 同时处理视图控件的所有交互
  * 时　　间: 2018/7/7.21:28
  * 作    者: maijiawen
  * 版本信息: V1.0.0
  **/
 public class TabDetailPager extends MenuDetaiBasePager {
     public static final String READ_ARRAY_ID = "read_array_id";//存储点击过的item的组key
-    private String id_Array=""; //存储点击过的item的组value
+    private String id_Array = ""; //存储点击过的item的组value
     private final NewsCenterPagerBean.DataBean.ChildrenData childrenData;
     /**
      * 顶部轮播图部分的数据
@@ -101,15 +105,16 @@ public class TabDetailPager extends MenuDetaiBasePager {
     private String moreUrl;//下一页的网址
 
     private InternalHandler internalHandler;//定时轮播图片的消息处理
-    private  boolean isDragging = false;//是否拖拽中
+    private boolean isDragging = false;//是否拖拽中
 
     private OkHttpClient client;
-    private String TAG=TabDetailPager.class.getSimpleName();
+    private String TAG = TabDetailPager.class.getSimpleName();
     private TabDetailPagerBean bean;
+
 
     public TabDetailPager(Context context, NewsCenterPagerBean.DataBean.ChildrenData childrenData) {
         super(context);
-        M.d(TAG,"TabDetailPager super");
+        M.d(TAG, "TabDetailPager super");
         this.childrenData = childrenData;
         //Glide加载图片或者加载失败时默认显示的图片
         options = new RequestOptions()
@@ -118,9 +123,10 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
     @Override
     public View initView() {
-        M.d(TAG,"initview 88");
-        View view = View.inflate(context, R.layout.tabdetail_pager, null);
 
+        M.d(TAG, "initview");
+        View view = View.inflate(context, R.layout.tabdetail_pager, null);
+//        listView = view.findViewById(R.id.listview);
         pullToRefreshListView = view.findViewById(R.id.pull_refresh_list);
 
 
@@ -135,6 +141,8 @@ public class TabDetailPager extends MenuDetaiBasePager {
         //设置模式 支持下拉刷新 上拉加载
         pullToRefreshListView.setMode(PullToRefreshBase.Mode.BOTH);
         pullToRefreshListView.setOnRefreshListener(new MyRefreshListener());//刷新监听器
+
+
 //        pullToRefreshListView.setOnItemClickListener(new MyOnItemClickListener());
         /**
          * Add Sound Event Listener
@@ -151,22 +159,22 @@ public class TabDetailPager extends MenuDetaiBasePager {
     /**
      * 列表点击处理
      */
-    class MyOnItemClickListener implements AdapterView.OnItemClickListener{
+    class MyOnItemClickListener implements AdapterView.OnItemClickListener {
 
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-            int realPosition=position-2;//因为listview顶部有两个view分别是 刷新控件和viewpager
-            TabDetailPagerBean.DataEntity.NewsData  newsBean=newsData.get(realPosition);
-            id_Array=CacheUtils.getString(context,READ_ARRAY_ID);
-            if(!id_Array.contains(newsBean.getId()+"")){
+            int realPosition = position - 1;//因为listview顶部有两个view分别是 刷新控件和viewpager
+            TabDetailPagerBean.DataEntity.NewsData newsBean = newsData.get(realPosition);
+            id_Array = CacheUtils.getString(context, READ_ARRAY_ID);
+            if (!id_Array.contains(newsBean.getId() + "")) {
                 //若没有存在该id，就添加进去
-                CacheUtils.putString(context,READ_ARRAY_ID,id_Array+newsBean.getId()+",");
+                CacheUtils.putString(context, READ_ARRAY_ID, id_Array + newsBean.getId() + ",");
                 listAdapter.notifyDataSetChanged(); //getcount  --->  getView
             }
             //跳新闻详情activity
             //即跳转到新闻浏览页面
-            Intent intent = new Intent(context,NewsDetailActivity.class);
-            intent.putExtra("url",Constants.BASE_URL+newsBean.getUrl());
+            Intent intent = new Intent(context, NewsDetailActivity.class);
+            intent.putExtra("url", Constants.BASE_URL + newsBean.getUrl());
             context.startActivity(intent);
         }
     }
@@ -175,7 +183,8 @@ public class TabDetailPager extends MenuDetaiBasePager {
     @Override
     public void initData() {
         super.initData();
-        M.d(TAG,"mjw initData");
+        M.d(TAG, "mjw initData");
+        prePosition=0;//清零，初始化位置
         url = Constants.BASE_URL + childrenData.getUrl();
         String saveJson = CacheUtils.getString(context, url);//获取之前的json网址缓存
         if (!TextUtils.isEmpty(saveJson)) {
@@ -185,9 +194,8 @@ public class TabDetailPager extends MenuDetaiBasePager {
 //        getDateFromNet();
 //         getDateFromNetByOkHttp();
         getDataFromNetByVolley();
-        M.d(TAG,"mjw childrenData title " + childrenData.getTitle() + " 网址 " + url);
+        M.d(TAG, "mjw childrenData title " + childrenData.getTitle() + " 网址 " + url);
     }
-
 
 
     /**
@@ -199,6 +207,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
             @Override
             public void onResponse(String result) {
                 LogUtil.e("使用Volley联网请求成功==" + result);
+                pullToRefreshListView.onRefreshComplete();
                 //缓存数据
                 CacheUtils.putString(context, url, result);
 
@@ -207,6 +216,8 @@ public class TabDetailPager extends MenuDetaiBasePager {
         }, new com.android.volley.Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
+                pullToRefreshListView.onRefreshComplete();
+                Toast.makeText(context, "网络异常", Toast.LENGTH_SHORT).show();
                 LogUtil.e("使用Volley联网请求失败==" + volleyError.getMessage());
             }
         }) {
@@ -229,15 +240,15 @@ public class TabDetailPager extends MenuDetaiBasePager {
     /**
      * 使用okhttp请求网路数据
      */
-    private void getDateFromNetByOkHttp(){
-        M.d(TAG,"mjwgetDateFromNetByOkHttp");
-        client=new OkHttpClient();
-        Request request=new Request.Builder().get().url(url).build();
+    private void getDateFromNetByOkHttp() {
+        M.d(TAG, "mjwgetDateFromNetByOkHttp");
+        client = new OkHttpClient();
+        Request request = new Request.Builder().get().url(url).build();
         client.newCall(request).enqueue(new okhttp3.Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 pullToRefreshListView.onRefreshComplete();
-                M.d(TAG,e.toString());
+                M.d(TAG, e.toString());
             }
 
             @Override
@@ -246,7 +257,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
 //                CacheUtils.putString(context, url, response.body().string());//将网址写入缓存中
                 processData(response.body().string());
-                    M.d(TAG,"mjw555");
+                M.d(TAG, "mjw555");
 
             }
         });
@@ -261,7 +272,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
         x.http().get(params, new Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String result) {
-                pullToRefreshListView.onRefreshComplete();
+//                pullToRefreshListView.onRefreshComplete();
                 CacheUtils.putString(context, url, result);//将网址写入缓存中
                 processData(result);
 //                M.d(TAG,"onSuccess data= "+result);
@@ -269,7 +280,8 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
-                pullToRefreshListView.onRefreshComplete();
+//                Toast.makeText(context, "网络异常", Toast.LENGTH_SHORT).show();
+//                pullToRefreshListView.onRefreshComplete();
             }
 
             @Override
@@ -291,73 +303,61 @@ public class TabDetailPager extends MenuDetaiBasePager {
      * @param json
      */
     private void processData(String json) {
-        M.d(TAG,"mjw processData");
+        M.d(TAG, "mjw processData");
         final TabDetailPagerBean bean = parsedJson(json);
         topNews = bean.getData().getTopnews();
         viewPager.setAdapter(new TabDetailPagerTopNewsAdapter());
-
         addPoint();
         viewPager.addOnPageChangeListener(new MyOnPageChangeListener());
         tv_title.setText(topNews.get(prePosition).getTitle());//设置图中标题
-        MainActivity mainActivity= (MainActivity) context;
-        mainActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                //获取listview的数据
-                newsData = bean.getData().getNews();
-                //设置listview的适配器
-                listAdapter = new TopDetailPageListAdapter();
-                listView.setAdapter(listAdapter);
-             //  listView.setOnScrollListener(new OnMyListviewScrollListener());
-                moreUrl = "";//清空内容
-                if (!TextUtils.isEmpty(bean.getData().getMore())) {
-                    //下一页内容不为空的话，获取下一页的网址
-                    moreUrl = Constants.BASE_URL + bean.getData().getMore();
-                }
-                viewPagerTimer();
-                M.d(TAG,"title "+bean.getData().getNews().get(0).getTitle());
-                M.d(TAG,"mjw processData end");
-            }
-        });
-
+        //获取listview的数据
+        newsData = bean.getData().getNews();
+        //设置listview的适配器
+        listAdapter = new TopDetailPageListAdapter();
+        listView.setAdapter(listAdapter);
+        //  listView.setOnScrollListener(new OnMyListviewScrollListener());
+        moreUrl = "";//清空内容
+        if (!TextUtils.isEmpty(bean.getData().getMore())) {
+            //下一页内容不为空的话，获取下一页的网址
+            moreUrl = Constants.BASE_URL + bean.getData().getMore();
+        }
+        viewPagerTimer();
+        M.d(TAG, "title " + bean.getData().getNews().get(0).getTitle());
+        M.d(TAG, "mjw processData end");
     }
 
     /**
      * 定时轮播图片处理的方法
      */
-    private void viewPagerTimer(){
+    private void viewPagerTimer() {
         //发消息每隔4000切换一次ViewPager页面
-        if(internalHandler == null){
+        if (internalHandler == null) {
             internalHandler = new InternalHandler();
         }
 
         //是把消息队列所有的消息和回调移除
         internalHandler.removeCallbacksAndMessages(null);
-        internalHandler.postDelayed(new MyRunnable(),4000);
+        internalHandler.postDelayed(new MyRunnable(), 4000);
     }
 
     class InternalHandler extends Handler {
         @Override
         public void handleMessage(final Message msg) {
             super.handleMessage(msg);
-            M.d(TAG,"mjw444");
-            switch (msg.what){
+            M.d(TAG, "mjw444");
+            switch (msg.what) {
                 case 0:
                     //切换ViewPager的下一个页面
-                    int item = (viewPager.getCurrentItem()+1)%topNews.size();
+                    int item = (viewPager.getCurrentItem() + 1) % topNews.size();
                     viewPager.setCurrentItem(item);
                     internalHandler.postDelayed(new MyRunnable(), 4000);
-                    break;
-                case 1:
-                    M.d(TAG,"mjw11111111");
-
                     break;
             }
 
         }
     }
 
-    class MyRunnable implements  Runnable{
+    class MyRunnable implements Runnable {
 
         @Override
         public void run() {
@@ -375,7 +375,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
             // Update the LastUpdatedLabel
             refreshView.getLoadingLayoutProxy().setLastUpdatedLabel(label);
-            getDateFromNet();
+            getDataFromNetByVolley();
         }
 
         @Override
@@ -400,7 +400,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
                 pullToRefreshListView.onRefreshComplete();
                 CacheUtils.putString(context, moreUrl, result);//将网址写入缓存中
                 processMoreData(result);
-                M.d(TAG,"getMoreDataFromNet onSuccess data= " + result);
+                M.d(TAG, "getMoreDataFromNet onSuccess data= " + result);
             }
 
             @Override
@@ -438,7 +438,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
         } else {
             Toast.makeText(context, "没有更多的了...", Toast.LENGTH_SHORT).show();
         }
-        M.d(TAG,"getMoreDataFromNet processMoreData success!! ");
+        M.d(TAG, "getMoreDataFromNet processMoreData success!! ");
     }
 
     /**
@@ -463,7 +463,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
         @Override
         public View getView(int position, View view, ViewGroup viewGroup) {
-            M.d(TAG,"getView!!!");
+            M.d(TAG, "getView!!!");
             ViewHolder viewHolder;
             if (view == null) {
                 view = View.inflate(context, R.layout.item_tabdetail_pager, null);
@@ -485,12 +485,12 @@ public class TabDetailPager extends MenuDetaiBasePager {
             viewHolder.tv_title.setText(news.getTitle());
             //时间
             viewHolder.tv_time.setText(news.getPubdate());
-            id_Array=CacheUtils.getString(context,READ_ARRAY_ID);
-            if(id_Array.contains(news.getId()+"")){
-                M.d(TAG,"getView GRAY!!!");
+            id_Array = CacheUtils.getString(context, READ_ARRAY_ID);
+            if (id_Array.contains(news.getId() + "")) {
+                M.d(TAG, "getView GRAY!!!");
                 //如果是之前点过的item，就将其设置为灰色
                 viewHolder.tv_title.setTextColor(Color.GRAY);
-            }else{
+            } else {
                 //黑色
                 viewHolder.tv_title.setTextColor(Color.BLACK);
             }
@@ -510,6 +510,7 @@ public class TabDetailPager extends MenuDetaiBasePager {
      * 添加红点
      */
     private void addPoint() {
+        M.d(TAG, "addPoint");
         ll_point_group.removeAllViews();//移除之前的所有视图
         for (int i = 0; i < topNews.size(); i++) {
             ImageView imageView = new ImageView(context);
@@ -548,24 +549,24 @@ public class TabDetailPager extends MenuDetaiBasePager {
 
         @Override
         public void onPageScrollStateChanged(int state) {
-            if(state ==ViewPager.SCROLL_STATE_DRAGGING){//拖拽
+            if (state == ViewPager.SCROLL_STATE_DRAGGING) {//拖拽
                 isDragging = true;
-                M.d(TAG,"拖拽");
+                M.d(TAG, "拖拽");
                 //拖拽要移除消息
                 internalHandler.removeCallbacksAndMessages(null);
-            }else if(state ==ViewPager.SCROLL_STATE_SETTLING&&isDragging){//惯性
+            } else if (state == ViewPager.SCROLL_STATE_SETTLING && isDragging) {//惯性
                 //发消息
-                M.d(TAG,"惯性");
+                M.d(TAG, "惯性");
                 isDragging = false;
                 internalHandler.removeCallbacksAndMessages(null);
-                internalHandler.postDelayed(new MyRunnable(),4000);
+                internalHandler.postDelayed(new MyRunnable(), 4000);
 
-            }else if(state ==ViewPager.SCROLL_STATE_IDLE&&isDragging){//静止状态
+            } else if (state == ViewPager.SCROLL_STATE_IDLE && isDragging) {//静止状态
                 //发消息
-                M.d(TAG,"静止状态");
+                M.d(TAG, "静止状态");
                 isDragging = false;
                 internalHandler.removeCallbacksAndMessages(null);
-                internalHandler.postDelayed(new MyRunnable(),4000);
+                internalHandler.postDelayed(new MyRunnable(), 4000);
             }
         }
     }
@@ -603,14 +604,14 @@ public class TabDetailPager extends MenuDetaiBasePager {
             imageView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
-                    switch (event.getAction()){
+                    switch (event.getAction()) {
                         case MotionEvent.ACTION_DOWN://按下
-                            M.d(TAG,"按下");
+                            M.d(TAG, "按下");
                             //是把消息队列所有的消息和回调移除
                             internalHandler.removeCallbacksAndMessages(null);
                             break;
                         case MotionEvent.ACTION_UP://离开
-                            M.d(TAG,"离开");
+                            M.d(TAG, "离开");
                             //是把消息队列所有的消息和回调移除
                             internalHandler.removeCallbacksAndMessages(null);
                             internalHandler.postDelayed(new MyRunnable(), 4000);

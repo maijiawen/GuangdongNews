@@ -1,10 +1,13 @@
 package com.example.guangdongnews.fragment;
 
 import android.nfc.Tag;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
@@ -56,16 +59,68 @@ public class ContentFragment extends BaseFragment {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        M.d(TAG, "onCreate" +
+                ": ");
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        M.d(TAG, "onActivityCreated: ");
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        M.d(TAG, "onCreateView: ");
+        return super.onCreateView(inflater, container, savedInstanceState);
+
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        M.d(TAG, "onStart: ");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        M.d(TAG, "onResume: ");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        M.d(TAG, "onPause: ");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        M.d(TAG, "onStop: ");
+    }
+
+    @Override
+    public void onDestroy() {
+        M.d(TAG, "onDestroy: ");
+        super.onDestroy();
+    }
+
+    @Override
+    public void onDestroyView() {
+        M.d(TAG, "onDestroyView: ");
+        super.onDestroyView();
+    }
+
+    @Override
     public void initData() {
 
         super.initData();
         M.d(TAG, "initData: ");
-        basePagers = new ArrayList<>();//实例化
-        basePagers.add(new HomePager(context));//添加主页面
-        basePagers.add(new NewsCenterPager(context));//添加新闻中心页面
-        basePagers.add(new SmartServicePager(context));//添加智慧服务指南页面
-        basePagers.add(new GovaffairPager(context));//添加政要中心页面
-        basePagers.add(new SettingPager(context));//添加设置中心页面
+        initPagers();
         viewpager.setAdapter(new ContentFragmentAdapter());
         viewpager.addOnPageChangeListener(new PageChangeListener());
         rg_main.setOnCheckedChangeListener(new GroupCheckedChangeListener());
@@ -74,6 +129,18 @@ public class ContentFragment extends BaseFragment {
         M.d(TAG, "initData: basePagers.get(0).initData()");
         isEnableSlidingMenu(SlidingMenu.TOUCHMODE_NONE);//设置默认不可滑动左侧菜单
 
+    }
+
+    /**
+     * 实例化页面，供给ContentFragmentAdapter 每一页实例的时候初始化调用
+     */
+    private void initPagers(){
+        basePagers = new ArrayList<>();//实例化
+        basePagers.add(new HomePager(context));//添加主页面
+        basePagers.add(new NewsCenterPager(context));//添加新闻中心页面
+        basePagers.add(new SmartServicePager(context));//添加智慧服务指南页面
+        basePagers.add(new GovaffairPager(context));//添加政要中心页面
+        basePagers.add(new SettingPager(context));//添加设置中心页面
     }
 
     class PageChangeListener implements ViewPager.OnPageChangeListener {
@@ -89,7 +156,7 @@ public class ContentFragment extends BaseFragment {
         @Override
         public void onPageSelected(int position) {
             M.d(TAG,"basePagers.get(position).initData() 初始化选中的页面的数据");
-            basePagers.get(position).initData();  //初始化选中的页面的数据，避免预解析数据
+            basePagers.get(position).initData();  //选中页面才初始化数据
         }
 
         @Override
@@ -100,7 +167,7 @@ public class ContentFragment extends BaseFragment {
 
     class GroupCheckedChangeListener implements RadioGroup.OnCheckedChangeListener {
 
-        /**
+        /**  让选中的那一页是否可以左侧滑动菜单
          * @param radioGroup
          * @param checkedId  选中的RadioButton ID
          */
@@ -112,6 +179,7 @@ public class ContentFragment extends BaseFragment {
                     isEnableSlidingMenu(SlidingMenu.TOUCHMODE_NONE);
                     break;
                 case R.id.rb_newscenter: //新闻界面
+                    M.d(TAG,"getXinwen");
                     viewpager.setCurrentItem(1, false);
                     isEnableSlidingMenu(SlidingMenu.TOUCHMODE_FULLSCREEN);
                     break;

@@ -15,6 +15,7 @@ import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.domain.NewsCenterPagerBean;
 import com.example.guangdongnews.page.tabdetailpager.TabDetailPager;
 import com.example.guangdongnews.utils.LogUtil;
+import com.example.guangdongnews.utils.M;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.viewpagerindicator.TabPageIndicator;
 
@@ -25,24 +26,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 功能描述:   新闻页面
+ * 功能描述:   接收 NewsCenterPager 丢过来的数据，新闻页面
  * 时　　间: 2018/7/7.13:53
  * 作    者: maijiawen
  * 版本信息: V1.0.0
  **/
 public class NewsMenuDetailPager extends MenuDetaiBasePager {
 
+    private static final String TAG = NewsMenuDetailPager.class.getSimpleName();
     @ViewInject(R.id.viewpager)
-    private ViewPager viewPager;
+    private ViewPager viewPager; //顶部图片的容器
 
     @ViewInject(R.id.tabPageIndicator)
-    private TabPageIndicator tabPageIndicator;
+    private TabPageIndicator tabPageIndicator; //容器上面的标签指示器（北京/中国/国际/文娱...）
 
     @ViewInject(R.id.ib_tab_next)
-    private ImageButton imageButton;
+    private ImageButton imageButton; //标签指示器尾部的下一页功能的按钮
 
     /**
-     * 页签页面数据集合
+     * 北京/中国/国际/文娱各个页面数据的集合
      */
     private List<NewsCenterPagerBean.DataBean.ChildrenData> children;
 
@@ -71,12 +73,13 @@ public class NewsMenuDetailPager extends MenuDetaiBasePager {
         super.initData();
         tabDetailPagers=new ArrayList<>();
         for (int i = 0; i < children.size(); i++) {
+            //获取 北京/中国/国际/文娱 **  等 10几个的页面数据
             tabDetailPagers.add(new TabDetailPager(context,children.get(i)));
         }
         viewPager.setAdapter(new MyNewsMenuDetailBasePagerAdapter());
         tabPageIndicator.setOnPageChangeListener(new MyOnPageChangeLisener());
         tabPageIndicator.setViewPager(viewPager);
-        LogUtil.e("新闻页面初始化了");
+        M.d(TAG,"新闻页面初始化了");
     }
 
     class MyOnPageChangeLisener implements ViewPager.OnPageChangeListener{

@@ -8,7 +8,11 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 
 /**
- * 功能描述:  自定义屏蔽滑动事件的viewpager
+ * 功能描述:  自定义屏蔽滑动事件的viewpager，
+ * 这是ContentFragment的viewpager，负责的是底部 主页 新闻 智慧 政要等的页面切换
+ * 因为页面滑动到倍儿逗之后，NewsMenuDetailPager是滑不下去了
+ *      但是，ContentFragment的viewpager还可以继续响应事件
+ *
  * 时　　间: 2018/7/6.1:21
  * 作    者: maijiawen
  * 版本信息: V1.0.0
@@ -42,7 +46,7 @@ public class NoScrollViewPager extends ViewPager {
     }
 
     /**
-     * 让事件传递下去
+     * 返回 false 让事件传递下去，否则 ，true
      * @param ev
      * @return
      */

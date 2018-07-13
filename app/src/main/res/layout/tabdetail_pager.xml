@@ -45,6 +45,7 @@
         
     </RelativeLayout>-->
 
+
     <com.handmark.pulltorefresh.library.PullToRefreshListView
         android:id="@+id/pull_refresh_list"
         android:layout_width="fill_parent"
@@ -57,11 +58,14 @@
         android:headerDividersEnabled="false"
         android:smoothScrollbar="true"
         />
-<!--    <ListView
+
+<!--
+    <ListView
         android:id="@+id/listview"
         android:cacheColorHint="@android:color/transparent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@null"/>-->
+        android:divider="@null"/>
+-->
 
 </LinearLayout>

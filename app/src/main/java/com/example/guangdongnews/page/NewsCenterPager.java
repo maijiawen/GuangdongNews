@@ -10,10 +10,12 @@ import android.widget.TextView;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.guangdongnews.activity.MainActivity;
 import com.example.guangdongnews.base.MenuDetaiBasePager;
 import com.example.guangdongnews.base.BasePager;
@@ -39,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 功能描述:  新闻中心页面
+ * 功能描述:  新闻中心页面总数据获取中心,然后交给 NewsMenuDetailPager 处理
  * 时　　间: 2018/7/6.0:34
  * 作    者: maijiawen
  * 版本信息: V1.0.0
@@ -50,7 +52,7 @@ public class NewsCenterPager extends BasePager {
     private String TAG=NewsCenterPager.class.getSimpleName();
 
     /**
-     * 详情页面的集合
+     * 左侧菜单各个页签的详情页面的集合
      */
     private ArrayList<MenuDetaiBasePager> detaiBasePagers;
 
@@ -180,6 +182,7 @@ public class NewsCenterPager extends BasePager {
         detaiBasePagers.add(new InteracMenuDetailPager(context,data.get(2)));//互动详情页面
 
         leftmenuFragment.setData(data);//传递数据给左侧菜单
+        swichPager(0);
         M.d(TAG, "processData: 传递数据给左侧菜单");
         M.d(TAG,"json title = "+title);
     }
@@ -196,7 +199,7 @@ public class NewsCenterPager extends BasePager {
     }
 
     /**
-     * 根据位置切换详情页面
+     * 根据左侧菜单选中的标签进行切换详情页面
      *
      * @param position
      */
